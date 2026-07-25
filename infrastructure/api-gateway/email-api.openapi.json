@@ -1,0 +1,57 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Email Notification API",
+    "version": "1.0.0",
+    "description": "Sanitised portfolio specification with live AWS identifiers replaced by placeholders."
+  },
+  "servers": [
+    {
+      "url": "https://YOUR_API_ID.execute-api.eu-north-1.amazonaws.com/{basePath}",
+      "variables": {
+        "basePath": {
+          "default": ""
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/send-email": {
+      "post": {
+        "responses": {
+          "default": {
+            "description": "Default response for POST /send-email"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "payloadFormatVersion": "2.0",
+          "type": "aws_proxy",
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:eu-north-1:lambda:path/2015-03-31/functions/arn:aws:lambda:eu-north-1:123456789012:function:ManualEmailSender/invocations",
+          "connectionType": "INTERNET"
+        }
+      }
+    }
+  },
+  "x-amazon-apigateway-cors": {
+    "allowMethods": [
+      "GET",
+      "OPTIONS",
+      "POST"
+    ],
+    "allowHeaders": [
+      "content-type"
+    ],
+    "maxAge": 0,
+    "allowCredentials": false,
+    "allowOrigins": [
+      "*"
+    ]
+  },
+  "x-amazon-apigateway-importexport-version": "1.0",
+  "x-portfolio-security-notes": [
+    "Restrict CORS to the deployed frontend origin in production.",
+    "Protect operational routes with Cognito or JWT authorization.",
+    "Apply least-privilege IAM permissions to Lambda integrations."
+  ]
+}

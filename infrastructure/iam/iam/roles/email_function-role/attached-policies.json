@@ -1,0 +1,16 @@
+{
+  "AttachedPolicies": [
+    {
+      "PolicyName": "CloudWatchLogsFullAccess",
+      "PolicyArn": "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+    },
+    {
+      "PolicyName": "AmazonSESFullAccess",
+      "PolicyArn": "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+    },
+    {
+      "PolicyName": "AmazonS3FullAccess",
+      "PolicyArn": "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+    }
+  ]
+}

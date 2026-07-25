@@ -1,0 +1,8 @@
+{
+  "AttachedPolicies": [
+    {
+      "PolicyName": "AWSLambdaBasicExecutionRole-cb2bb519-445a-499f-82ac-e14ad6af22d4",
+      "PolicyArn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER"
+    }
+  ]
+}

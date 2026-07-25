@@ -1,0 +1,8 @@
+{
+  "defaultClientId": "water-sensor-device",
+  "thingName": "water-sensor-device",
+  "thingId": "9aa603e6-142d-4fd1-a235-799c4cbf2892",
+  "thingArn": "arn:aws:iot:eu-north-1:123456789012:RESOURCE_PLACEHOLDER",
+  "attributes": {},
+  "version": 1
+}

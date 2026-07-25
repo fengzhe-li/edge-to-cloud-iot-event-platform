@@ -1,0 +1,26 @@
+{
+  "Role": {
+    "Path": "/service-role/",
+    "RoleName": "databasesave-role-p0rcizby",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-02-26T15:55:15+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "lambda.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {
+      "LastUsedDate": "2026-02-26T17:35:48+00:00",
+      "Region": "eu-north-1"
+    }
+  }
+}

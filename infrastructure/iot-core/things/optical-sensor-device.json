@@ -1,0 +1,8 @@
+{
+  "defaultClientId": "optical-sensor-device",
+  "thingName": "optical-sensor-device",
+  "thingId": "c6befed3-5a70-4b78-a109-815b30e30abf",
+  "thingArn": "arn:aws:iot:eu-north-1:123456789012:RESOURCE_PLACEHOLDER",
+  "attributes": {},
+  "version": 1
+}

@@ -1,0 +1,27 @@
+{
+  "Role": {
+    "Path": "/aws-service-role/rds.amazonaws.com/",
+    "RoleName": "AWSServiceRoleForRDS",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-02-20T02:18:43+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "rds.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "Description": "Allows Amazon RDS to manage AWS resources on your behalf",
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {
+      "LastUsedDate": "2026-07-14T12:56:42+00:00",
+      "Region": "eu-north-1"
+    }
+  }
+}

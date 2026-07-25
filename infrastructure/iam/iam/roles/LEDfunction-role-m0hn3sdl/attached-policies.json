@@ -1,0 +1,12 @@
+{
+  "AttachedPolicies": [
+    {
+      "PolicyName": "AWSLambdaBasicExecutionRole-45d60353-c5a2-483e-b563-9e20f692c607",
+      "PolicyArn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER"
+    },
+    {
+      "PolicyName": "AWSLambdaDynamoDBExecutionRole",
+      "PolicyArn": "arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "Role": {
+    "Path": "/aws-service-role/ses.amazonaws.com/",
+    "RoleName": "AWSServiceRoleForAmazonSES",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-02-23T10:16:40+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ses.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "Description": "Allows SES to publish Amazon CloudWatch basic monitoring metrics on behalf of your SES resources.",
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {
+      "LastUsedDate": "2026-02-23T10:17:02+00:00",
+      "Region": "eu-north-1"
+    }
+  }
+}

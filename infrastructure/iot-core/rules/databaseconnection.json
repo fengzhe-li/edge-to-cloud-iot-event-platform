@@ -1,0 +1,28 @@
+{
+  "ruleArn": "arn:aws:iot:eu-north-1:123456789012:RESOURCE_PLACEHOLDER",
+  "rule": {
+    "ruleName": "databaseconnection",
+    "sql": "SELECT *, topic() AS mqtt_topic, timestamp() AS received_ts\nFROM '#'\n",
+    "description": "",
+    "createdAt": "2026-03-12T11:10:21+00:00",
+    "actions": [
+      {
+        "lambda": {
+          "functionArn": "arn:aws:lambda:eu-north-1:123456789012:function:databasesave"
+        }
+      },
+      {
+        "lambda": {
+          "functionArn": "arn:aws:lambda:eu-north-1:123456789012:function:databaseconnection"
+        }
+      },
+      {
+        "lambda": {
+          "functionArn": "arn:aws:lambda:eu-north-1:123456789012:function:database"
+        }
+      }
+    ],
+    "ruleDisabled": false,
+    "awsIotSqlVersion": "2016-03-23"
+  }
+}

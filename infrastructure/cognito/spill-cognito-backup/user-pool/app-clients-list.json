@@ -1,0 +1,9 @@
+{
+  "UserPoolClients": [
+    {
+      "ClientId": "CLIENT_ID_PLACEHOLDER",
+      "UserPoolId": "eu-north-1_POOLIDPLACEHOLDER",
+      "ClientName": "SpillingDetection"
+    }
+  ]
+}

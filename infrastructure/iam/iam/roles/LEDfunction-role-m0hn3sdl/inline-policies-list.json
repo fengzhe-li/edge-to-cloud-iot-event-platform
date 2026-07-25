@@ -1,0 +1,6 @@
+{
+  "PolicyNames": [
+    "LambdaIoTPublish",
+    "LEDfunctionDynamoDBAccess"
+  ]
+}

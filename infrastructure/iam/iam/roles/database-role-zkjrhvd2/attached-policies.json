@@ -1,0 +1,12 @@
+{
+  "AttachedPolicies": [
+    {
+      "PolicyName": "AWSLambdaBasicExecutionRole-3e893366-0229-478a-b2cd-5b474ecf5bdf",
+      "PolicyArn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER"
+    },
+    {
+      "PolicyName": "AmazonEventBridgeFullAccess",
+      "PolicyArn": "arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess"
+    }
+  ]
+}

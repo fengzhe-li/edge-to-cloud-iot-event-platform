@@ -1,0 +1,23 @@
+{
+  "Role": {
+    "Path": "/aws-service-role/logger.cloudfront.amazonaws.com/",
+    "RoleName": "AWSServiceRoleForCloudFrontLogger",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-03-09T10:36:51+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "logger.cloudfront.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {}
+  }
+}

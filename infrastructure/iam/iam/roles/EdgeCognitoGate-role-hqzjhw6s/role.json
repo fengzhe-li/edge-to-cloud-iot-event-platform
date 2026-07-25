@@ -1,0 +1,29 @@
+{
+  "Role": {
+    "Path": "/service-role/",
+    "RoleName": "EdgeCognitoGate-role-hqzjhw6s",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-03-09T10:13:05+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": [
+              "lambda.amazonaws.com",
+              "edgelambda.amazonaws.com"
+            ]
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {
+      "LastUsedDate": "2026-03-09T12:28:24+00:00",
+      "Region": "eu-west-2"
+    }
+  }
+}

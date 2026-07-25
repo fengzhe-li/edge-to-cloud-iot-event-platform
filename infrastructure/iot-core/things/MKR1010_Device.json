@@ -1,0 +1,8 @@
+{
+  "defaultClientId": "MKR1010_Device",
+  "thingName": "MKR1010_Device",
+  "thingId": "83b96af4-7da3-46a6-9a91-bb62aa5336ed",
+  "thingArn": "arn:aws:iot:eu-north-1:123456789012:RESOURCE_PLACEHOLDER",
+  "attributes": {},
+  "version": 1
+}

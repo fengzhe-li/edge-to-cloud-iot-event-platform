@@ -1,0 +1,17 @@
+{
+  "RoleName": "AlertNotificationServiceauto-role-j961wplw",
+  "PolicyName": "changeAUTOemail",
+  "PolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem"
+        ],
+        "Resource": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER"
+      }
+    ]
+  }
+}

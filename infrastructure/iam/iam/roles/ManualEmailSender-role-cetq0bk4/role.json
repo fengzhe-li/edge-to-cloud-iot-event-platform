@@ -1,0 +1,26 @@
+{
+  "Role": {
+    "Path": "/service-role/",
+    "RoleName": "ManualEmailSender-role-cetq0bk4",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-03-02T11:17:45+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "lambda.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {
+      "LastUsedDate": "2026-03-16T10:10:32+00:00",
+      "Region": "eu-north-1"
+    }
+  }
+}

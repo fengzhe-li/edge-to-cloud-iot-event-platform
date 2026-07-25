@@ -1,0 +1,24 @@
+{
+  "Role": {
+    "Path": "/aws-service-role/support.amazonaws.com/",
+    "RoleName": "AWSServiceRoleForSupport",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-02-12T11:52:01+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "support.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "Description": "Enables resource access for AWS to provide billing, administrative and support services",
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {}
+  }
+}

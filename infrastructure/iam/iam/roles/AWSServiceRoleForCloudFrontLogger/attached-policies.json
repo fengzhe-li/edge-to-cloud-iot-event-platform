@@ -1,0 +1,8 @@
+{
+  "AttachedPolicies": [
+    {
+      "PolicyName": "AWSCloudFrontLogger",
+      "PolicyArn": "arn:aws:iam::aws:policy/aws-service-role/AWSCloudFrontLogger"
+    }
+  ]
+}

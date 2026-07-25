@@ -1,0 +1,18 @@
+{
+  "RoleName": "LEDfunction-role-m0hn3sdl",
+  "PolicyName": "LEDfunctionDynamoDBAccess",
+  "PolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "AllowReadWriteActuatorState",
+        "Effect": "Allow",
+        "Action": [
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem"
+        ],
+        "Resource": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER"
+      }
+    ]
+  }
+}

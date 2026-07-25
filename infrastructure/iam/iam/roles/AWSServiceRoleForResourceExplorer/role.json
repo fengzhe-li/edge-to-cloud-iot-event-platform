@@ -1,0 +1,26 @@
+{
+  "Role": {
+    "Path": "/aws-service-role/resource-explorer-2.amazonaws.com/",
+    "RoleName": "AWSServiceRoleForResourceExplorer",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-02-19T21:11:30+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "resource-explorer-2.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {
+      "LastUsedDate": "2026-07-14T12:15:42+00:00",
+      "Region": "us-east-1"
+    }
+  }
+}

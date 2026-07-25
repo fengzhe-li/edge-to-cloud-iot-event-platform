@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sensor Monitor Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+</head>
+
+<body>
+
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <div class="login-logo">
+                <svg width="40" height="40" viewBox="0 0 28 28" fill="none">
+                    <circle cx="14" cy="14" r="13" stroke="#6C63FF" stroke-width="2" />
+                    <circle cx="14" cy="14" r="5" fill="#6C63FF" />
+                    <line x1="14" y1="1" x2="14" y2="6" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+                    <line x1="14" y1="22" x2="14" y2="27" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+                    <line x1="1" y1="14" x2="6" y2="14" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+                    <line x1="22" y1="14" x2="27" y2="14" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <span>SensorWatch</span>
+            </div>
+            <p class="login-subtitle">Enter password to access the dashboard</p>
+            <div class="login-input-wrap">
+                <input type="password" id="login-password" class="login-input" placeholder="Password" onkeydown="if(event.key==='Enter')handleLogin()" autofocus />
+            </div>
+            <div id="login-error" class="login-error"></div>
+            <button class="login-btn" onclick="handleLogin()">Login</button>
+        </div>
+    </div>
+
+    <!-- App Content (hidden until login) -->
+    <div id="app-content" style="display:none;">
+
+    <header class="header">
+        <div class="logo">
+            <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+                <circle cx="14" cy="14" r="13" stroke="#6C63FF" stroke-width="2" />
+                <circle cx="14" cy="14" r="5" fill="#6C63FF" />
+                <line x1="14" y1="1" x2="14" y2="6" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+                <line x1="14" y1="22" x2="14" y2="27" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+                <line x1="1" y1="14" x2="6" y2="14" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+                <line x1="22" y1="14" x2="27" y2="14" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span>SensorWatch</span>
+        </div>
+        <div class="header-center">
+            <!-- Arduino 1 Status -->
+            <div class="arduino-status" id="arduino-status-1">
+                <span class="status-dot"></span>
+                <span class="status-text">System 1</span>
+            </div>
+
+            <span class="header-sep">|</span>
+
+            <!-- Arduino 2 Status -->
+            <div class="arduino-status" id="arduino-status-2">
+                <span class="status-dot"></span>
+                <span class="status-text">System 2</span>
+            </div>
+
+            <span class="header-sep" style="margin-left:8px;">|</span>
+            <span id="stat-summary" class="stat-summary">6 Dry · 0 Wet · 0 Zones Affected</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="clock" id="clock">--:--:--</div>
+            <button class="logout-btn" onclick="handleLogout()" title="Logout">⏻</button>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="map-panel">
+            <div class="map-panel-header">
+                <div>
+                    <h2>Supermarket Floor Plan</h2>
+                    <p>Sensor monitor is live and connected</p>
+                </div>
+                <div class="map-legend">
+                    <div class="leg-item">
+                        <div class="leg-dot dry-dot"></div>Dry
+                    </div>
+                    <div class="leg-item">
+                        <div class="leg-dot wet-dot"></div>Wet (alert active)
+                    </div>
+                </div>
+            </div>
+
+            <div class="zone-status-bar">
+                <div class="zsb-zone" id="mzone-1" data-zone="1">
+                    <div class="zone-badge z1"><span>1</span>
+                        <div><b>Zone 1</b><small>Beverages &amp; Dairy</small></div>
+                    </div>
+                    <div class="zone-chip" id="zchip-1">✓ Clear</div>
+                    <div class="zsb-staff">Ruben · Jan · Chloe · Lee</div>
+                </div>
+                <div class="zsb-zone" id="mzone-2" data-zone="2">
+                    <div class="zone-badge z2"><span>2</span>
+                        <div><b>Zone 2</b><small>Electronics &amp; General</small></div>
+                    </div>
+                    <div class="zone-chip" id="zchip-2">✓ Clear</div>
+                    <div class="zsb-staff">Wu · Chang</div>
+                </div>
+                <div class="zsb-zone" id="mzone-3" data-zone="3">
+                    <div class="zone-badge z3"><span>3</span>
+                        <div><b>Zone 3</b><small>Produce &amp; Fresh</small></div>
+                    </div>
+                    <div class="zone-chip" id="zchip-3">✓ Clear</div>
+                    <div class="zsb-staff">Joker · Tom</div>
+                </div>
+            </div>
+
+            <!-- SVG Floor Plan (drawn by map.js) -->
+            <div id="store-map-wrap" class="store-map-wrap"></div>
+
+        </div><!-- /map-panel -->
+
+
+        <!-- RFID Management Panel -->
+        <div class="rfid-panel">
+            <div class="rfid-header">
+                <h3>RFID Management</h3>
+                <button class="rfid-save-btn" onclick="saveRfidAssignments()">Save Assignments</button>
+            </div>
+            <div class="rfid-content">
+                <div class="rfid-controls">
+                    <div class="rfid-item">
+                        <span class="rfid-id">DEMO-RFID-01</span>
+                        <select id="rfid-sel-1" class="rfid-select" data-rfid="DEMO-RFID-01">
+                            <option value="">Unassigned</option>
+                            <option value="1">Ruben</option>
+                            <option value="2">Jan</option>
+                            <option value="3">Chloe</option>
+                            <option value="4">Lee</option>
+                            <option value="5">Wu</option>
+                            <option value="6">Chang</option>
+                            <option value="7">Joker</option>
+                            <option value="8">Tom</option>
+                        </select>
+                    </div>
+                    <div class="rfid-item">
+                        <span class="rfid-id">DEMO-RFID-02</span>
+                        <select id="rfid-sel-2" class="rfid-select" data-rfid="DEMO-RFID-02">
+                            <option value="">Unassigned</option>
+                            <option value="1">Ruben</option>
+                            <option value="2">Jan</option>
+                            <option value="3">Chloe</option>
+                            <option value="4">Lee</option>
+                            <option value="5">Wu</option>
+                            <option value="6">Chang</option>
+                            <option value="7">Joker</option>
+                            <option value="8">Tom</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="rfid-mappings">
+                    <h4>Current Mappings</h4>
+                    <div id="rfid-mapping-list" class="rfid-mapping-list">
+                        <div class="rfid-mapping-empty">No mappings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actuator Control Panel -->
+        <div class="actuator-panel">
+            <div class="actuator-header">
+                <h3>Actuator Control</h3>
+            </div>
+            <div class="actuator-content">
+                <div class="actuator-item">
+                    <div class="actuator-info">
+                        <strong>System 1</strong>
+                        <span id="actuator-state-1" class="actuator-badge off">LED OFF</span>
+                    </div>
+                    <button id="actuator-btn-1" class="actuator-btn" onclick="toggleLed('system1')">Turn ON</button>
+                </div>
+                <div class="actuator-item">
+                    <div class="actuator-info">
+                        <strong>System 2</strong>
+                        <span id="actuator-state-2" class="actuator-badge off">LED OFF</span>
+                    </div>
+                    <button id="actuator-btn-2" class="actuator-btn" onclick="toggleLed('system2')">Turn ON</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- IoT Sensor Config Panel -->
+        <div class="iot-config-panel">
+            <div class="actuator-header" style="justify-content: space-between;">
+                <h3>Sensor Configuration</h3>
+                <select id="iot-device-select" class="rfid-select" style="min-width:120px;" onchange="syncDeviceSelects(this.value)">
+                    <option value="Arduino1">Arduino 1</option>
+                    <option value="Arduino2" selected>Arduino 2</option>
+                </select>
+            </div>
+            <div class="iot-list-wrap">
+                <div class="iot-grid" id="iot-config-grid">
+                    <!-- Sensor cards populate here via JS -->
+                    <div style="color:var(--muted); padding: 16px;">Loading configuration...</div>
+                </div>
+            </div>
+            <div class="iot-footer">
+                <button id="iot-push-btn" class="iot-push-btn" onclick="pushIotConfig()">Push to Device</button>
+                <div id="iot-status-bar" class="iot-status-bar">Waiting for action...</div>
+            </div>
+        </div>
+
+        <!-- Threshold Config Panel -->
+        <div class="iot-config-panel" style="margin-top: 20px;">
+            <div class="actuator-header" style="justify-content: space-between;">
+                <h3>Threshold Configuration</h3>
+                <select id="threshold-device-select" class="rfid-select" style="min-width:120px;" onchange="syncDeviceSelects(this.value)">
+                    <option value="Arduino1">Arduino 1</option>
+                    <option value="Arduino2" selected>Arduino 2</option>
+                </select>
+            </div>
+            <div class="iot-list-wrap">
+                <div class="iot-grid" id="threshold-config-grid">
+                    <!-- Threshold cards populate here via JS -->
+                    <div style="color:var(--muted); padding: 16px;">Loading thresholds...</div>
+                </div>
+            </div>
+            <div class="iot-footer">
+                <button id="threshold-push-btn" class="iot-push-btn" onclick="pushThresholdConfig()">Push Thresholds to Device</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Global Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Audit Event Table (full-width, below main) -->
+    <section class="audit-section">
+        <div class="audit-header">
+            <div class="audit-title-wrap">
+                <h3 class="audit-title">📋 Event Audit Log</h3>
+                <span class="audit-subtitle">State changes · Manual operations · Employee tap actions</span>
+            </div>
+            <div class="log-header-actions">
+                <button class="download-btn" onclick="downloadAuditLog()" title="Download as CSV">⬇ Download</button>
+                <button class="clear-btn" onclick="clearAuditTable()">Clear</button>
+            </div>
+        </div>
+        <div class="audit-table-wrap">
+            <table class="audit-table" id="audit-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Sensor</th>
+                        <th>Zone</th>
+                        <th>Event Type</th>
+                        <th>Details</th>
+                        <th>Actor</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-tbody">
+                    <tr class="audit-empty-row">
+                        <td colspan="6">No events recorded yet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+
+    <!-- Sensor Popover -->
+    <div id="popover-backdrop" class="popover-backdrop" onclick="closeSensorPopover()"></div>
+    <div id="sensor-popover" class="sensor-popover">
+        <div class="spop-hdr">
+            <div>
+                <div class="spop-name" id="spop-name">Sensor 1</div>
+                <div class="spop-zone" id="spop-zone">Zone 1 &middot; Description</div>
+            </div>
+            <div class="spop-badge" id="spop-badge">DRY</div>
+        </div>
+        <div class="spop-time" id="spop-time">No changes yet</div>
+        <div class="spop-handler" id="spop-handler" style="display:none;"></div>
+        <div class="spop-btns">
+            <button class="spop-btn assign-btn" id="spop-assign-btn" onclick="openAssignFromPopover()">👤 Assign
+                Staff</button>
+        </div>
+    </div>
+
+    <!-- RFID Active Handling Modal -->
+    <div class="modal-overlay" id="active-handling-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-icon person">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="4" stroke="#ffaa00" stroke-width="2" />
+                    <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </div>
+            <h2 class="modal-title">🔧 Active Handling</h2>
+            <p class="modal-subtitle">
+                <strong id="ahm-emp-name">Employee X</strong> is now handling <strong id="ahm-sensor-name">Sensor
+                    Y</strong> in <strong id="ahm-zone-name">Zone Z</strong>.
+            </p>
+            <div class="modal-actions">
+                <button class="btn-cancel"
+                    onclick="document.getElementById('active-handling-modal').style.display='none'">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Caution Modal -->
+    <div class="modal-overlay" id="caution-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-icon warning">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2L2 19H22L12 2Z" stroke="#FFAA00" stroke-width="2" stroke-linejoin="round"
+                        fill="rgba(255,170,0,0.15)" />
+                    <line x1="12" y1="9" x2="12" y2="13" stroke="#FFAA00" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="12" cy="16.5" r="1" fill="#FFAA00" />
+                </svg>
+            </div>
+            <h2 class="modal-title">⚠ Moisture Alert</h2>
+            <p class="modal-subtitle"><strong id="caution-sensor-name">Sensor X</strong> detected wet in <strong
+                    id="caution-zone-name">Zone Y</strong>. Assign a response employee.</p>
+            <div class="caution-zone-card" id="caution-zone-card">
+                <div class="czc-name" id="czc-name">Zone 1</div>
+                <div class="czc-info" id="czc-info">North Aisle · 3 staff assigned</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeCautionModal()">Dismiss</button>
+                <button class="btn-confirm" onclick="openEmployeeModalFromCaution()">Assign Employee →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Modal -->
+    <div class="modal-overlay" id="employee-modal" style="display:none;">
+        <div class="modal">
+            <div class="modal-icon person">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="4" stroke="#6C63FF" stroke-width="2" />
+                    <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#6C63FF" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </div>
+            <h2 class="modal-title">Assign Employee</h2>
+            <p class="modal-subtitle">Select staff from <strong id="emp-zone-label">Zone X</strong> to dispatch to the
+                affected area.</p>
+            <div class="employee-search">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="7" stroke="#888" stroke-width="2" />
+                    <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="#888" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <input type="text" id="emp-search" placeholder="Search…" oninput="filterEmployees()" />
+            </div>
+            <div class="employee-list" id="employee-list"></div>
+            <div class="emp-email-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+                    <rect x="2" y="4" width="20" height="16" rx="2" stroke="#888" stroke-width="2" />
+                    <path d="M2 7l10 7 10-7" stroke="#888" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <input type="text" id="emp-email-display" class="emp-email-input" readonly
+                    placeholder="Select an employee to see email" />
+                <button class="btn-send-email" id="send-email-btn" onclick="sendEmailToSelected()" disabled>✉ Send
+                    Email</button>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeEmployeeModal()">Back</button>
+                <button class="btn-confirm" id="confirm-btn" onclick="confirmAssignment()" disabled>Confirm
+                    Assignment</button>
+            </div>
+        </div>
+    </div>
+
+    </div><!-- /app-content -->
+
+    <script src="config.js"></script>
+    <script src="map.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+{
+  "ruleArn": "arn:aws:iot:eu-north-1:123456789012:RESOURCE_PLACEHOLDER",
+  "rule": {
+    "ruleName": "AutoEmail",
+    "sql": "SELECT * FROM 'waterlevel/sensors/+/state'",
+    "description": "",
+    "createdAt": "2026-03-13T18:06:00+00:00",
+    "actions": [
+      {
+        "lambda": {
+          "functionArn": "arn:aws:lambda:eu-north-1:123456789012:function:AlertNotificationServiceauto"
+        }
+      }
+    ],
+    "ruleDisabled": false,
+    "awsIotSqlVersion": "2016-03-23"
+  }
+}

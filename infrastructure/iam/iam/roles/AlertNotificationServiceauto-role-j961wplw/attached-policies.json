@@ -1,0 +1,12 @@
+{
+  "AttachedPolicies": [
+    {
+      "PolicyName": "AWSLambdaBasicExecutionRole-18d16f4e-dfa3-4127-af50-9297d23cac4d",
+      "PolicyArn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER"
+    },
+    {
+      "PolicyName": "AmazonSESFullAccess",
+      "PolicyArn": "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+    }
+  ]
+}

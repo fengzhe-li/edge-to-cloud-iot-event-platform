@@ -1,0 +1,16 @@
+{
+  "RoleName": "database-role-zkjrhvd2",
+  "PolicyName": "EmailSend",
+  "PolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "events:PutEvents"
+        ],
+        "Resource": "*"
+      }
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "RoleName": "EdgeCognitoGate-role-hqzjhw6s",
+  "PolicyName": "EdgeLambdaLogsPolicy",
+  "PolicyDocument": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "EdgeLambdaBasicLogs",
+        "Effect": "Allow",
+        "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource": "*"
+      }
+    ]
+  }
+}

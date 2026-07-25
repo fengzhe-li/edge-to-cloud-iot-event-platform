@@ -1,0 +1,46 @@
+{
+  "UserPoolClient": {
+    "UserPoolId": "eu-north-1_POOLIDPLACEHOLDER",
+    "ClientName": "SpillingDetection",
+    "ClientId": "CLIENT_ID_PLACEHOLDER",
+    "ClientSecret": "REMOVED_FROM_PORTFOLIO_EXPORT",
+    "LastModifiedDate": "2026-03-06T17:45:21.875000+00:00",
+    "CreationDate": "2026-03-06T17:26:39.649000+00:00",
+    "RefreshTokenValidity": 5,
+    "AccessTokenValidity": 60,
+    "IdTokenValidity": 60,
+    "TokenValidityUnits": {
+      "AccessToken": "minutes",
+      "IdToken": "minutes",
+      "RefreshToken": "days"
+    },
+    "ExplicitAuthFlows": [
+      "ALLOW_REFRESH_TOKEN_AUTH",
+      "ALLOW_USER_AUTH",
+      "ALLOW_USER_SRP_AUTH"
+    ],
+    "SupportedIdentityProviders": [
+      "COGNITO"
+    ],
+    "CallbackURLs": [
+      "https://d29552hxblksq0.cloudfront.net/"
+    ],
+    "LogoutURLs": [
+      "https://d29552hxblksq0.cloudfront.net/"
+    ],
+    "DefaultRedirectURI": "https://d29552hxblksq0.cloudfront.net/",
+    "AllowedOAuthFlows": [
+      "code"
+    ],
+    "AllowedOAuthScopes": [
+      "email",
+      "openid",
+      "phone"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "PreventUserExistenceErrors": "ENABLED",
+    "EnableTokenRevocation": true,
+    "EnablePropagateAdditionalUserContextData": false,
+    "AuthSessionValidity": 3
+  }
+}

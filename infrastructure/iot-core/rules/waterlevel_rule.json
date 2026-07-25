@@ -1,0 +1,18 @@
+{
+  "ruleArn": "arn:aws:iot:eu-north-1:123456789012:RESOURCE_PLACEHOLDER",
+  "rule": {
+    "ruleName": "waterlevel_rule",
+    "sql": "SELECT * FROM 'waterlevel/#'",
+    "description": "",
+    "createdAt": "2026-03-06T16:15:35+00:00",
+    "actions": [
+      {
+        "lambda": {
+          "functionArn": "arn:aws:lambda:eu-north-1:123456789012:function:mqttToDB2"
+        }
+      }
+    ],
+    "ruleDisabled": false,
+    "awsIotSqlVersion": "2016-03-23"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "policyName": "FirstPolicy",
+  "policyArn": "arn:aws:iot:eu-north-1:123456789012:RESOURCE_PLACEHOLDER",
+  "policyDocument": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"iot:Connect\",\n        \"iot:Publish\",\n        \"iot:Subscribe\",\n        \"iot:Receive\"\n      ],\n      \"Resource\": \"*\"\n    }\n  ]\n}\n",
+  "defaultVersionId": "1",
+  "creationDate": "2026-02-20T13:57:24.372000+00:00",
+  "lastModifiedDate": "2026-02-20T13:57:24.372000+00:00",
+  "generationId": "CERTIFICATE_ID_PLACEHOLDER"
+}

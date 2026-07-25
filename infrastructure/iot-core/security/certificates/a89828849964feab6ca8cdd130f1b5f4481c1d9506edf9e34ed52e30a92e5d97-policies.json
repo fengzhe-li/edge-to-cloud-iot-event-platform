@@ -1,0 +1,8 @@
+{
+  "policies": [
+    {
+      "policyName": "FirstPolicy",
+      "policyArn": "arn:aws:iot:eu-north-1:123456789012:RESOURCE_PLACEHOLDER"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "certificateDescription": {
+    "certificateArn": "arn:aws:iot:eu-north-1:123456789012:cert/CERTIFICATE_ID_PLACEHOLDER",
+    "certificateId": "CERTIFICATE_ID_PLACEHOLDER",
+    "status": "ACTIVE",
+    "certificatePem": "REMOVED_FROM_PORTFOLIO_EXPORT",
+    "ownedBy": "123456789012",
+    "creationDate": "2026-03-06T15:40:49.724000+00:00",
+    "lastModifiedDate": "2026-03-06T15:40:50.045000+00:00",
+    "customerVersion": 2,
+    "transferData": {},
+    "generationId": "21b6d368-0209-4b7d-8db9-afbafca26782",
+    "validity": {
+      "notBefore": "2026-03-06T15:38:49+00:00",
+      "notAfter": "2049-12-31T23:59:59+00:00"
+    },
+    "certificateMode": "DEFAULT"
+  }
+}

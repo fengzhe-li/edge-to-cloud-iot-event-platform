@@ -1,0 +1,24 @@
+{
+  "Role": {
+    "Path": "/aws-service-role/ops.apigateway.amazonaws.com/",
+    "RoleName": "AWSServiceRoleForAPIGateway",
+    "RoleId": "IDENTIFIER_PLACEHOLDER",
+    "Arn": "arn:aws:SERVICE:REGION:123456789012:RESOURCE_PLACEHOLDER",
+    "CreateDate": "2026-03-02T11:24:26+00:00",
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ops.apigateway.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    },
+    "Description": "The Service Linked Role is used by Amazon API Gateway.",
+    "MaxSessionDuration": 3600,
+    "RoleLastUsed": {}
+  }
+}
