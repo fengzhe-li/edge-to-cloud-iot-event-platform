@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="600" viewBox="0 0 1280 600" role="img" aria-labelledby="title desc" font-family="Arial,Helvetica,sans-serif">
+<title id="title">Storage and data-flow design</title>
+<desc id="desc">PostgreSQL holds relational event history and current state; DynamoDB holds two small low-latency operational tables. Each table's writer and consistency rule are shown.</desc>
+<rect width="1280" height="600" rx="24" fill="#101722"/>
+<text x="48" y="52" font-size="26" font-weight="700" fill="#f0f5fc">Storage / Data-Flow Design</text>
+<text x="48" y="80" font-size="15" fill="#b1becf">PostgreSQL: relational event history and current state · DynamoDB: small low-latency operational state</text>
+
+<rect x="48" y="112" width="560" height="440" rx="14" fill="#172c30" stroke="#35676a"/>
+<text x="72" y="144" font-size="19" font-weight="700" fill="#a9e3dc">PostgreSQL</text>
+<text x="72" y="164" font-size="13" fill="#b6c7d9">Written by: Ingest Lambda</text>
+
+<g font-family="Arial,Helvetica,sans-serif">
+<rect x="72" y="184" width="512" height="66" rx="10" fill="#1b2736" stroke="#3b536b"/>
+<text x="90" y="206" font-size="14.5" font-weight="700" fill="#edf4fc">ingested_events</text>
+<text x="90" y="226" font-size="12.5" fill="#b6c7d9">Retry-safe dedup ledger — event_key PK, INSERT ... ON CONFLICT DO NOTHING</text>
+<text x="90" y="242" font-size="12.5" fill="#b6c7d9">Same event_id with different payload is rejected, not silently accepted</text>
+
+<rect x="72" y="260" width="512" height="66" rx="10" fill="#1b2736" stroke="#3b536b"/>
+<text x="90" y="282" font-size="14.5" font-weight="700" fill="#edf4fc">waterlevel_readings</text>
+<text x="90" y="302" font-size="12.5" fill="#b6c7d9">Append-only historical sensor readings (device, sensor, value, wet)</text>
+<text x="90" y="318" font-size="12.5" fill="#b6c7d9">One row per accepted sensor event</text>
+
+<rect x="72" y="336" width="512" height="66" rx="10" fill="#1b2736" stroke="#3b536b"/>
+<text x="90" y="358" font-size="14.5" font-weight="700" fill="#edf4fc">sensorstate</text>
+<text x="90" y="378" font-size="12.5" fill="#b6c7d9">Current state per sensor — UPSERT guarded by</text>
+<text x="90" y="394" font-size="12.5" fill="#b6c7d9">WHERE EXCLUDED.updated_ts &gt; sensorstate.updated_ts (out-of-order drop)</text>
+
+<rect x="72" y="412" width="248" height="66" rx="10" fill="#1b2736" stroke="#3b536b"/>
+<text x="90" y="434" font-size="14.5" font-weight="700" fill="#edf4fc">device_heartbeats</text>
+<text x="90" y="454" font-size="12.5" fill="#b6c7d9">Latest heartbeat only —</text>
+<text x="90" y="470" font-size="12.5" fill="#b6c7d9">no historical availability</text>
+
+<rect x="336" y="412" width="248" height="66" rx="10" fill="#1b2736" stroke="#3b536b"/>
+<text x="354" y="434" font-size="14.5" font-weight="700" fill="#edf4fc">rfid_scans</text>
+<text x="354" y="454" font-size="12.5" fill="#b6c7d9">Append-only scan log —</text>
+<text x="354" y="470" font-size="12.5" fill="#b6c7d9">no incident acknowledgement key</text>
+</g>
+
+<text x="72" y="520" font-size="13" fill="#b6c7d9">Also: sensor_config, sensor_thresholds — current configuration, read by Config/Status/Analytics APIs</text>
+<text x="72" y="540" font-size="13" fill="#8aa0b8">Configuration history is not persisted as an audit trail.</text>
+
+<rect x="656" y="112" width="576" height="230" rx="14" fill="#172c30" stroke="#35676a"/>
+<text x="680" y="144" font-size="19" font-weight="700" fill="#a9e3dc">DynamoDB</text>
+<text x="680" y="164" font-size="13" fill="#b6c7d9">Small, low-latency operational state — not historical</text>
+
+<rect x="680" y="184" width="528" height="66" rx="10" fill="#1b2736" stroke="#3b536b"/>
+<text x="698" y="206" font-size="14.5" font-weight="700" fill="#edf4fc">sensor_alert_state</text>
+<text x="698" y="226" font-size="12.5" fill="#b6c7d9">Written by: AutomaticAlert Lambda</text>
+<text x="698" y="242" font-size="12.5" fill="#b6c7d9">Compare-and-swap on last_state + updated_ts — decides "email or not"</text>
+
+<rect x="680" y="260" width="528" height="66" rx="10" fill="#1b2736" stroke="#3b536b"/>
+<text x="698" y="282" font-size="14.5" font-weight="700" fill="#edf4fc">ActuatorState</text>
+<text x="698" y="302" font-size="12.5" fill="#b6c7d9">Written by: LED-control Lambda</text>
+<text x="698" y="318" font-size="12.5" fill="#b6c7d9">Current on/off per system — read by dashboard, optionally republished to IoT Core</text>
+
+<rect x="656" y="366" width="576" height="186" rx="14" fill="#1b2736" stroke="#3b536b"/>
+<text x="680" y="396" font-size="15" font-weight="700" fill="#edf4fc">Why two stores instead of one</text>
+<text x="680" y="420" font-size="13" fill="#b6c7d9">PostgreSQL gives transactional, queryable history for analytics and audit —</text>
+<text x="680" y="438" font-size="13" fill="#b6c7d9">at the cost of a network round trip per write.</text>
+<text x="680" y="462" font-size="13" fill="#b6c7d9">DynamoDB gives single-digit-millisecond conditional writes for the two</text>
+<text x="680" y="480" font-size="13" fill="#b6c7d9">paths that must never double-fire (alert emails, actuator state) — at the</text>
+<text x="680" y="498" font-size="13" fill="#b6c7d9">cost of no relational history.</text>
+<text x="680" y="522" font-size="13" fill="#8aa0b8">Neither store is a cache of the other; each is the source of truth for its own data.</text>
+</svg>

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="380" viewBox="0 0 1280 380" role="img" aria-labelledby="title desc" font-family="Arial,Helvetica,sans-serif">
+<title id="title">Remote actuation flow</title>
+<desc id="desc">The dashboard requests an actuator state change through the IAM-authorized LED-control endpoint, which persists the new state to DynamoDB and, when explicitly enabled, republishes it to AWS IoT Core for the device to pick up.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#69c9c3"/></marker></defs>
+<rect width="1280" height="380" rx="24" fill="#101722"/>
+<text x="48" y="52" font-size="26" font-weight="700" fill="#f0f5fc">Remote Actuation Flow</text>
+<text x="48" y="80" font-size="15" fill="#b1becf">Dashboard-initiated on/off control of a device actuator (e.g. system1 / system2)</text>
+
+<rect x="48" y="130" width="200" height="90" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="68" y="162" font-size="16" font-weight="700" fill="#edf4fc">Dashboard</text>
+<text x="68" y="184" font-size="12.5" fill="#b6c7d9">Operator selects</text>
+<text x="68" y="200" font-size="12.5" fill="#b6c7d9">system + on/off</text>
+
+<rect x="298" y="130" width="220" height="90" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="318" y="162" font-size="16" font-weight="700" fill="#edf4fc">API Gateway</text>
+<text x="318" y="184" font-size="12.5" fill="#b6c7d9">POST /led-control</text>
+<text x="318" y="200" font-size="12.5" fill="#b6c7d9">AWS_IAM (SigV4) authorizer</text>
+
+<rect x="568" y="130" width="230" height="90" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="588" y="162" font-size="16" font-weight="700" fill="#edf4fc">LED-control Lambda</text>
+<text x="588" y="184" font-size="12.5" fill="#b6c7d9">Validates systemId + state</text>
+<text x="588" y="200" font-size="12.5" fill="#b6c7d9">(system1|system2, on|off)</text>
+
+<rect x="848" y="88" width="230" height="76" rx="12" fill="#172c30" stroke="#35676a"/>
+<text x="868" y="118" font-size="15" font-weight="700" fill="#a9e3dc">DynamoDB</text>
+<text x="868" y="138" font-size="12.5" fill="#b6c7d9">ActuatorState — current</text>
+<text x="868" y="154" font-size="12.5" fill="#b6c7d9">on/off, always persisted</text>
+
+<rect x="848" y="196" width="230" height="96" rx="12" fill="#172c30" stroke="#35676a" stroke-dasharray="6 5"/>
+<text x="868" y="226" font-size="15" font-weight="700" fill="#a9e3dc">AWS IoT Core</text>
+<text x="868" y="246" font-size="12.5" fill="#b6c7d9">Publish to actuator/{id}/set</text>
+<text x="868" y="262" font-size="12.5" fill="#b6c7d9">Only when ENABLE_IOT_PUBLISH=true</text>
+<text x="868" y="278" font-size="12.5" fill="#b6c7d9">(disabled by default)</text>
+
+<rect x="1120" y="196" width="120" height="96" rx="12" fill="#1b2736" stroke="#3b536b" stroke-dasharray="6 5"/>
+<text x="1140" y="230" font-size="14" font-weight="700" fill="#edf4fc">Device</text>
+<text x="1140" y="250" font-size="12" fill="#b6c7d9">subscribes to</text>
+<text x="1140" y="266" font-size="12" fill="#b6c7d9">its topic</text>
+
+<path d="M248 175 H288" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M518 175 H558" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M798 165 C 815 145, 830 135, 846 128" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M798 195 C 815 215, 830 230, 846 240" fill="none" stroke="#69c9c3" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+<path d="M1078 244 H1110" fill="none" stroke="#69c9c3" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+
+<rect x="48" y="312" width="1184" height="52" rx="10" fill="#1b2736" stroke="#3b536b"/>
+<text x="68" y="332" font-size="13" fill="#edf4fc" font-weight="700">Not a real-time acknowledged control loop:</text>
+<text x="68" y="350" font-size="12.5" fill="#b6c7d9">DynamoDB write always succeeds/fails synchronously; the IoT publish is fire-and-forget with no device-side delivery confirmation back to the API.</text>
+</svg>

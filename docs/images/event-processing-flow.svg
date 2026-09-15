@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560" role="img" aria-labelledby="title desc" font-family="Arial,Helvetica,sans-serif">
+<title id="title">Event processing flow</title>
+<desc id="desc">A device MQTT publish fans out through IoT Rules to two independent Lambda paths: transactional PostgreSQL ingestion with retry-safe deduplication, and a DynamoDB compare-and-swap alert path that sends at most one email per accepted WET transition.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#69c9c3"/></marker></defs>
+<rect width="1280" height="560" rx="24" fill="#101722"/>
+<text x="48" y="52" font-size="26" font-weight="700" fill="#f0f5fc">Event Processing Flow</text>
+<text x="48" y="80" font-size="15" fill="#b1becf">Sensor, heartbeat, and RFID messages fan out to two independent Lambda paths</text>
+
+<rect x="48" y="120" width="220" height="90" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="68" y="152" font-size="17" font-weight="700" fill="#edf4fc">Device</text>
+<text x="68" y="174" font-size="13" fill="#b6c7d9">MQTT publish</text>
+<text x="68" y="192" font-size="13" fill="#b6c7d9">sensor / heartbeat / RFID</text>
+
+<rect x="330" y="120" width="220" height="90" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="350" y="152" font-size="17" font-weight="700" fill="#edf4fc">IoT Rules</text>
+<text x="350" y="174" font-size="13" fill="#b6c7d9">Topic-based routing</text>
+<text x="350" y="192" font-size="13" fill="#b6c7d9">fans out to two Lambdas</text>
+
+<path d="M268 165 H320" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<!-- Ingest path -->
+<rect x="612" y="60" width="290" height="110" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="632" y="90" font-size="17" font-weight="700" fill="#edf4fc">Ingest Lambda</text>
+<text x="632" y="112" font-size="13" fill="#b6c7d9">Classify sensor / heartbeat / RFID</text>
+<text x="632" y="132" font-size="13" fill="#b6c7d9">Derive event identity for dedup</text>
+<text x="632" y="152" font-size="13" fill="#b6c7d9">(device, kind, event_id or timestamp)</text>
+
+<rect x="972" y="60" width="260" height="110" rx="12" fill="#172c30" stroke="#35676a"/>
+<text x="992" y="90" font-size="16" font-weight="700" fill="#a9e3dc">PostgreSQL</text>
+<text x="992" y="112" font-size="13" fill="#b6c7d9">Append-only event ledger</text>
+<text x="992" y="132" font-size="13" fill="#b6c7d9">insert-on-conflict-do-nothing</text>
+<text x="992" y="152" font-size="13" fill="#b6c7d9">Timestamp-guarded current state</text>
+
+<path d="M550 160 C 570 130, 590 115, 610 115" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M902 115 H962" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<!-- Alert path -->
+<rect x="612" y="230" width="290" height="130" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="632" y="260" font-size="17" font-weight="700" fill="#edf4fc">AutomaticAlert Lambda</text>
+<text x="632" y="282" font-size="13" fill="#b6c7d9">Conditional compare-and-swap</text>
+<text x="632" y="302" font-size="13" fill="#b6c7d9">on last_state + updated_ts</text>
+<text x="632" y="322" font-size="13" fill="#b6c7d9">Retries on ConditionalCheckFailed</text>
+<text x="632" y="342" font-size="13" fill="#b6c7d9">up to 8 attempts</text>
+
+<rect x="972" y="230" width="260" height="80" rx="12" fill="#172c30" stroke="#35676a"/>
+<text x="992" y="260" font-size="16" font-weight="700" fill="#a9e3dc">DynamoDB</text>
+<text x="992" y="282" font-size="13" fill="#b6c7d9">sensor_alert_state</text>
+<text x="992" y="298" font-size="13" fill="#b6c7d9">one accepted transition wins</text>
+
+<rect x="972" y="330" width="260" height="80" rx="12" fill="#172c30" stroke="#35676a"/>
+<text x="992" y="360" font-size="16" font-weight="700" fill="#a9e3dc">SES</text>
+<text x="992" y="382" font-size="13" fill="#b6c7d9">Email sent only on accepted</text>
+<text x="992" y="398" font-size="13" fill="#b6c7d9">DRY/DRYING → WET transition</text>
+
+<path d="M550 175 C 570 210, 590 260, 610 285" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M902 275 H962" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M1102 310 V330" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+<rect x="48" y="440" width="1184" height="90" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="68" y="466" font-size="14.5" fill="#edf4fc" font-weight="700">Why two independent paths?</text>
+<text x="68" y="488" font-size="13" fill="#b6c7d9">The event ledger (PostgreSQL) and the alert decision (DynamoDB) have different consistency needs: the ledger deduplicates retried</text>
+<text x="68" y="506" font-size="13" fill="#b6c7d9">deliveries by event identity; the alert path only needs to guarantee at most one email per state transition, not full event history.</text>
+</svg>

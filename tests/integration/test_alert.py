@@ -1,10 +1,45 @@
 """Handler + real boto3 calls against Moto's DynamoDB emulator, not live AWS."""
 
 from concurrent.futures import ThreadPoolExecutor
+import threading
 from unittest.mock import MagicMock
 import boto3
 from moto import mock_aws
 import pytest
+
+
+class _LockedTable:
+    """Serialises calls into moto's DynamoDB backend.
+
+    Moto's in-process mock is not safe under calls from real concurrent OS
+    threads: a GetItem and an UpdateItem issued at the same instant from two
+    threads can observe/mutate its internal store non-atomically, corrupting
+    an item (e.g. dropping an attribute) in a way real DynamoDB never would.
+    Locking each individual call preserves the test's intent — many threads
+    still race for the conditional write and retries still happen — while
+    keeping each moto call itself atomic, matching real DynamoDB semantics.
+    """
+
+    def __init__(self, table, lock):
+        self._table = table
+        self._lock = lock
+
+    def get_item(self, *args, **kwargs):
+        with self._lock:
+            return self._table.get_item(*args, **kwargs)
+
+    def update_item(self, *args, **kwargs):
+        with self._lock:
+            return self._table.update_item(*args, **kwargs)
+
+
+class _LockedDynamoDBResource:
+    def __init__(self, resource, lock):
+        self._resource = resource
+        self._lock = lock
+
+    def Table(self, name):
+        return _LockedTable(self._resource.Table(name), self._lock)
 
 
 @pytest.fixture
@@ -18,13 +53,24 @@ def alert(loader, monkeypatch):
         )
         m = loader("automatic-alert")
         ses = MagicMock()
-        original = boto3.client
+        original_client = boto3.client
+        original_resource = boto3.resource
+        dynamodb_lock = threading.Lock()
         monkeypatch.setattr(
             m.boto3,
             "client",
             lambda service, *a, **kw: ses
             if service == "ses"
-            else original(service, *a, **kw),
+            else original_client(service, *a, **kw),
+        )
+        monkeypatch.setattr(
+            m.boto3,
+            "resource",
+            lambda service, *a, **kw: _LockedDynamoDBResource(
+                original_resource(service, *a, **kw), dynamodb_lock
+            )
+            if service == "dynamodb"
+            else original_resource(service, *a, **kw),
         )
         yield m, ses
 

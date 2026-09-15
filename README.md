@@ -1,10 +1,13 @@
-# AWS IoT Operational Analytics
+# Edge-to-Cloud IoT Event Platform — Smart Spill Detection
 
-[![Backend verification](https://github.com/fengzhe-li/aws-iot-operational-analytics/actions/workflows/backend.yml/badge.svg)](https://github.com/fengzhe-li/aws-iot-operational-analytics/actions/workflows/backend.yml)
+[![Backend verification](https://github.com/fengzhe-li/edge-to-cloud-iot-event-platform/actions/workflows/backend.yml/badge.svg)](https://github.com/fengzhe-li/edge-to-cloud-iot-event-platform/actions/workflows/backend.yml)
 
-A Python and PostgreSQL backend that turns IoT spill-sensor events into current
-state, incident history and operational summaries. Built around AWS IoT Core,
-Lambda, API Gateway, DynamoDB and SES, with a lightweight JavaScript dashboard.
+An event-driven edge-to-cloud backend: MQTT devices publish through AWS IoT
+Core, IoT Rules fan out to Python Lambda functions that deduplicate and
+persist events, and an IAM-authorized API surfaces current state, incident
+history and operational analytics to a lightweight JavaScript dashboard. The
+concrete domain example is IoT spill-sensor detection, built around AWS IoT
+Core, Lambda, API Gateway, PostgreSQL, DynamoDB and SES.
 
 This is the upgraded project. The [original repository](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system)
 is preserved separately. The upgrade adds tested data-integrity behaviour and
@@ -45,6 +48,75 @@ production workload. The actual dashboard does not silently load sample metrics.
 Windows can also use timezone-qualified `start` and `end`; the maximum is 31 days.
 First-observed wet states and conflicting timestamps are not counted as known
 incident onsets. [Metric definitions and example response →](docs/ANALYTICS.md)
+
+## Event Processing Pipeline
+
+A device MQTT publish fans out through IoT Rules to two independent Lambda paths:
+transactional PostgreSQL ingestion with retry-safe deduplication, and a DynamoDB
+compare-and-swap alert path that sends at most one email per accepted transition.
+
+![Event processing flow](docs/images/event-processing-flow.svg)
+
+Full ordering, identity and retry semantics are documented in
+[docs/ENGINEERING.md](docs/ENGINEERING.md).
+
+## Data / Persistence Design
+
+PostgreSQL holds relational event history and current state; DynamoDB holds two
+small, low-latency operational tables. Neither store is a cache of the other —
+each is the source of truth for its own data.
+
+![Storage and data-flow design](docs/images/data-flow.svg)
+
+## Remote Actuation
+
+The dashboard can toggle a device actuator through an IAM-authorized endpoint.
+The new state is always persisted to DynamoDB; republishing it to AWS IoT Core
+for the device to pick up is optional and disabled by default
+(`ENABLE_IOT_PUBLISH=false`).
+
+![Remote actuation flow](docs/images/remote-actuation-flow.svg)
+
+This is not an acknowledged control loop: the IoT publish is fire-and-forget,
+with no device-side delivery confirmation back to the API.
+
+## Security Architecture
+
+- **API auth:** every endpoint in the supported `template.yaml` backend uses
+  `AWS_IAM` (SigV4-signed requests); the browser dashboard does not implement
+  SigV4 or Cognito, so a deployment must front it with an authorized transport
+  or proxy — never browser-held AWS credentials.
+- **Device auth:** AWS IoT Core authenticates devices with per-device X.509
+  certificates (see `infrastructure/iot-core/`); certificate identifiers in
+  this repository are sanitised placeholders, not live credentials.
+- **Recommended production path:** Amazon Cognito is documented as the
+  intended browser-facing auth path (`infrastructure/cognito/`), but is not
+  wired into the current frontend.
+- **Secrets:** no AWS access keys, private keys, or real account identifiers
+  are committed. `scripts/check_secrets.py` runs a targeted credential-pattern
+  check over every tracked/unignored file.
+
+## Observability
+
+- Every Lambda handler logs structured JSON events (outcome, request ID,
+  event type/ID, failure category) through a shared `spill_common.log` helper
+  — no raw event payloads, SQL passwords, or full provider errors are logged.
+- GitHub Actions (`.github/workflows/backend.yml`) runs lint, syntax checks,
+  config validation, and the full test suite (including real PostgreSQL
+  integration tests) on every push.
+- No custom metrics, alarms, tracing, or SLOs have been added — this is an
+  honest gap, not an implied capability.
+
+## Evolution from Original Prototype
+
+| | [Original repository](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system) | This upgrade |
+|---|---|---|
+| Reliability | No retry-dedup ledger; duplicate MQTT delivery could double-write | Retry-safe event ledger with explicit `event_id` identity contract |
+| Alerting | No concurrency guard documented | DynamoDB compare-and-swap: at most one email per accepted transition |
+| Testing | No test suite | 102 tests (unit + real PostgreSQL + DynamoDB-emulator integration), CI-enforced |
+| Analytics | None | Read-only `/analytics/summary` endpoint with explicit data-limitation reporting |
+| Sanitisation | Manual | `scripts/check_secrets.py` + `scripts/validate_config.py` run in CI |
+| Claims | — | Explicit non-claims section (no exactly-once delivery, no production-readiness claim) |
 
 ## Run the checks
 
