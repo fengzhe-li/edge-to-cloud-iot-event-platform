@@ -1,0 +1,8 @@
+pytest==8.4.2
+boto3==1.40.30
+psycopg2-binary==2.9.11
+pg8000==1.31.5
+PyYAML==6.0.3
+ruff==0.13.0
+moto[dynamodb]==5.1.12
+cfn-lint==1.39.0

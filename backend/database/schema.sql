@@ -156,4 +156,12 @@ ALTER TABLE ONLY public.waterlevel_readings
 ALTER TABLE ONLY public.spill_events
     ADD CONSTRAINT spill_events_device_id_fkey FOREIGN KEY (device_id) REFERENCES public.devices(id);
 
+-- Apply explicitly to an existing deployment before enabling the new ingest handler.
+-- Durable retry ledger; no automatic expiry. Existing history is not backfilled.
+CREATE TABLE IF NOT EXISTS public.ingested_events (
+    event_key text PRIMARY KEY,
+    payload_hash text NOT NULL,
+    processed_at timestamptz NOT NULL DEFAULT now()
+);
+
 COMMIT;

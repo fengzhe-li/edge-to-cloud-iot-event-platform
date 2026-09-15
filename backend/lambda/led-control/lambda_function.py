@@ -1,10 +1,10 @@
+from spill_common import observed, body_object
 import json
 import os
 from datetime import datetime, timezone
 
 import boto3
-from botocore.exceptions import ClientError
-     
+
 REGION = os.environ.get("AWS_REGION", "eu-north-1")
 TABLE_NAME = os.environ.get("TABLE_NAME", "ActuatorState")
 IOT_ENDPOINT = os.environ.get("IOT_ENDPOINT", "")
@@ -16,9 +16,7 @@ table = dynamodb.Table(TABLE_NAME)
 iot_client = None
 if ENABLE_IOT_PUBLISH and IOT_ENDPOINT:
     iot_client = boto3.client(
-        "iot-data",
-        region_name=REGION,
-        endpoint_url=f"https://{IOT_ENDPOINT}"
+        "iot-data", region_name=REGION, endpoint_url=f"https://{IOT_ENDPOINT}"
     )
 
 
@@ -29,31 +27,19 @@ def json_response(status_code, body):
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "Content-Type",
-            "Access-Control-Allow-Methods": "OPTIONS,GET,POST"
+            "Access-Control-Allow-Methods": "OPTIONS,GET,POST",
         },
-        "body": json.dumps(body)
+        "body": json.dumps(body),
     }
 
 
 def parse_body(event):
-    body = event.get("body")
-    if not body:
-        return {}
-
-    if isinstance(body, dict):
-        return body
-
-    try:
-        return json.loads(body)
-    except json.JSONDecodeError:
-        raise ValueError("Invalid JSON body")
+    return body_object(event)
 
 
 def get_method(event):
     return (
-        event.get("requestContext", {})
-        .get("http", {})
-        .get("method")
+        event.get("requestContext", {}).get("http", {}).get("method")
         or event.get("httpMethod")
         or "GET"
     )
@@ -80,7 +66,7 @@ def get_all_states():
             "pk": "actuator_state",
             "system1": "off",
             "system2": "off",
-            "updatedAt": None
+            "updatedAt": None,
         }
 
     return item
@@ -92,48 +78,26 @@ def save_state(system_id, state):
     table.update_item(
         Key={"pk": "actuator_state"},
         UpdateExpression="SET #sid = :state, updatedAt = :updatedAt",
-        ExpressionAttributeNames={
-            "#sid": system_id
-        },
-        ExpressionAttributeValues={
-            ":state": state,
-            ":updatedAt": now
-        }
+        ExpressionAttributeNames={"#sid": system_id},
+        ExpressionAttributeValues={":state": state, ":updatedAt": now},
     )
 
-    return {
-        "systemId": system_id,
-        "state": state,
-        "updatedAt": now
-    }
+    return {"systemId": system_id, "state": state, "updatedAt": now}
 
 
 def publish_to_iot(system_id, state):
     if not iot_client:
-        return {
-            "published": False,
-            "reason": "IoT publish disabled"
-        }
+        return {"published": False, "reason": "IoT publish disabled"}
 
     topic = f"actuator/{system_id}/set"
-    payload = {
-        "systemId": system_id,
-        "state": state,
-        "timestamp": get_now_iso()
-    }
+    payload = {"systemId": system_id, "state": state, "timestamp": get_now_iso()}
 
-    iot_client.publish(
-        topic=topic,
-        qos=1,
-        payload=json.dumps(payload)
-    )
+    iot_client.publish(topic=topic, qos=1, payload=json.dumps(payload))
 
-    return {
-        "published": True,
-        "topic": topic
-    }
+    return {"published": True, "topic": topic}
 
 
+@observed("led_control", api=True)
 def lambda_handler(event, context):
     try:
         method = get_method(event)
@@ -143,14 +107,17 @@ def lambda_handler(event, context):
 
         if method == "GET":
             states = get_all_states()
-            return json_response(200, {
-                "success": True,
-                "data": {
-                    "system1": states.get("system1", "off"),
-                    "system2": states.get("system2", "off"),
-                    "updatedAt": states.get("updatedAt")
-                }
-            })
+            return json_response(
+                200,
+                {
+                    "success": True,
+                    "data": {
+                        "system1": states.get("system1", "off"),
+                        "system2": states.get("system2", "off"),
+                        "updatedAt": states.get("updatedAt"),
+                    },
+                },
+            )
 
         if method == "POST":
             body = parse_body(event)
@@ -158,53 +125,39 @@ def lambda_handler(event, context):
             state = body.get("state")
 
             if not is_valid_system_id(system_id):
-                return json_response(400, {
-                    "success": False,
-                    "message": "systemId must be 'system1' or 'system2'"
-                })
+                return json_response(
+                    400,
+                    {
+                        "success": False,
+                        "message": "systemId must be 'system1' or 'system2'",
+                    },
+                )
 
             if not is_valid_state(state):
-                return json_response(400, {
-                    "success": False,
-                    "message": "state must be 'on' or 'off'"
-                })
+                return json_response(
+                    400, {"success": False, "message": "state must be 'on' or 'off'"}
+                )
 
             save_result = save_state(system_id, state)
             iot_result = publish_to_iot(system_id, state)
 
-            return json_response(200, {
-                "success": True,
-                "message": "Actuator state updated",
-                "data": {
-                    "systemId": system_id,
-                    "state": state,
-                    "updatedAt": save_result["updatedAt"],
-                    "iot": iot_result
-                }
-            })
+            return json_response(
+                200,
+                {
+                    "success": True,
+                    "message": "Actuator state updated",
+                    "data": {
+                        "systemId": system_id,
+                        "state": state,
+                        "updatedAt": save_result["updatedAt"],
+                        "iot": iot_result,
+                    },
+                },
+            )
 
-        return json_response(405, {
-            "success": False,
-            "message": f"Method {method} not allowed"
-        })
+        return json_response(
+            405, {"success": False, "message": f"Method {method} not allowed"}
+        )
 
-    except ValueError as e:
-        return json_response(400, {
-            "success": False,
-            "message": str(e)
-        })
-
-    except ClientError as e:
-        print("AWS ClientError:", str(e))
-        return json_response(500, {
-            "success": False,
-            "message": "AWS service error",
-            "detail": str(e)
-        })
-
-    except Exception as e:
-        print("Lambda error:", str(e))
-        return json_response(500, {
-            "success": False,
-            "message": str(e) or "Internal server error"
-        })
+    except Exception:
+        raise

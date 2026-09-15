@@ -1,196 +1,79 @@
+"""Atomic state acceptance before SES; at most one attempt per accepted transition.
+
+A crash after claim can lose an alert. No automatic resend after an ambiguous SES
+failure: this intentionally avoids claiming exactly-once or guaranteed delivery.
+"""
+
 import os
-import json
-import time
 import boto3
-from datetime import datetime, timezone
 from botocore.exceptions import ClientError
-
-REGION = os.environ.get("AWS_REGION", "eu-north-1")
-
-ses = boto3.client("ses", region_name=REGION)
-dynamodb = boto3.resource("dynamodb", region_name=REGION)
-
-TABLE_NAME = os.environ.get("ALERT_TABLE", "sensor_alert_state")
-table = dynamodb.Table(TABLE_NAME)
-
-SENDER = os.environ.get("SENDER", "operations@example.com")
-RECIPIENTS = [
-    x.strip()
-    for x in os.environ.get("RECIPIENTS", "operations@example.com").split(",")
-    if x.strip()
-]
+from spill_common import event_time, observed, pick, log
 
 
-def log(level: str, msg: str, **kwargs):
-    payload = {
-        "level": level.upper(),
-        "msg": msg,
-        "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-    }
-    if kwargs:
-        payload.update(kwargs)
-    print(json.dumps(payload, default=str))
-
-
-def _pick_field(event: dict, *keys):
-    for k in keys:
-        if k in event:
-            return event[k]
-    return None
-
-
-def _derive_state(event: dict):
-    st = _pick_field(event, "state", "status")
-    if st is None:
-        return None
-    state_str = str(st).strip().upper()
-    if state_str not in {"WET", "DRY", "DRYING"}:
-        return None
-    return state_str
-
-
+@observed("automatic_alert")
 def lambda_handler(event, context):
+    sid = pick(event, "sensor_id", "sensorId")
+    if sid is None or not str(sid).strip():
+        raise ValueError("missing sensor_id")
+    state = str(pick(event, "state", "status") or "").strip().upper()
+    if state not in ("WET", "DRY", "DRYING"):
+        raise ValueError("invalid state")
+    state = "DRY" if state == "DRYING" else state
+    ts, at = event_time(event)
+    recipients = [s.strip() for s in os.environ["RECIPIENTS"].split(",") if s.strip()]
+    sender = os.environ["SENDER"].strip()
+    if not recipients or not sender:
+        raise ValueError("SENDER and RECIPIENTS are required")
+    table = boto3.resource("dynamodb").Table(
+        os.getenv("ALERT_TABLE", "sensor_alert_state")
+    )
+    # Compare-and-swap retries only state contention, never SES delivery.
+    for _ in range(8):
+        old = table.get_item(Key={"sensor_id": str(sid)}, ConsistentRead=True).get(
+            "Item"
+        )
+        if old and ts <= int(old.get("updated_ts", -1)):
+            return {"ok": True, "skipped": "stale_or_duplicate", "email_sent": False}
+        values = {":state": state, ":ts": ts, ":at": at.isoformat()}
+        condition = "attribute_not_exists(sensor_id)"
+        if old:
+            condition = "last_state = :previous AND updated_ts = :previous_ts"
+            if "updated_ts" not in old:
+                raise ValueError("legacy alert state requires updated_ts migration")
+            values.update(
+                {":previous": old["last_state"], ":previous_ts": old["updated_ts"]}
+            )
+        try:
+            table.update_item(
+                Key={"sensor_id": str(sid)},
+                UpdateExpression="SET last_state=:state, updated_ts=:ts, updated_at=:at",
+                ConditionExpression=condition,
+                ExpressionAttributeValues=values,
+            )
+            break
+        except ClientError as exc:
+            if exc.response["Error"]["Code"] != "ConditionalCheckFailedException":
+                raise
+    else:
+        raise RuntimeError("alert state contention exhausted")
+    should_send = state == "WET" and (not old or old["last_state"] != "WET")
+    if should_send:
+        boto3.client("ses").send_email(
+            Source=sender,
+            Destination={"ToAddresses": recipients},
+            Message={
+                "Subject": {"Data": f"Moisture detected: sensor {sid}"},
+                "Body": {
+                    "Text": {"Data": f"Sensor {sid} entered WET at {at.isoformat()}."}
+                },
+            },
+        )
     log(
         "INFO",
-        "Lambda invoked",
+        "alert_transition_accepted",
+        sensor_id=str(sid),
+        event_ts=ts,
+        email_sent=should_send,
         request_id=getattr(context, "aws_request_id", None),
-        event=event,
     )
-
-    try:
-        sensor_id_raw = _pick_field(event, "sensor_id", "sensorId")
-        sensor_id = str(sensor_id_raw).strip() if sensor_id_raw is not None else None
-
-        zone_name = (
-            _pick_field(event, "zone_name", "zoneName", "zone", "location", "area")
-            or "Unknown Zone"
-        )
-
-        device_id = _pick_field(event, "device_id", "deviceId", "source_id") or "UNKNOWN_DEVICE"
-        mqtt_topic = _pick_field(event, "mqtt_topic", "topic") or "unknown"
-
-        received_ts = _pick_field(event, "received_ts", "ts")
-        if received_ts is None:
-            received_ts = int(time.time() * 1000)
-        else:
-            received_ts = int(received_ts)
-
-        received_at = datetime.fromtimestamp(received_ts / 1000, tz=timezone.utc)
-        current_state = _derive_state(event)
-
-        log(
-            "INFO",
-            "Parsed event",
-            sensor_id=sensor_id,
-            zone_name=zone_name,
-            device_id=device_id,
-            mqtt_topic=mqtt_topic,
-            current_state=current_state,
-            received_ts=received_ts,
-        )
-
-        if not sensor_id:
-            return {"ok": False, "error": "missing sensor_id"}
-
-        if current_state is None:
-            return {"ok": True, "skipped": True, "reason": "invalid or missing state"}
-
-        if current_state == "DRYING":
-            current_state = "DRY"
-
-        resp = table.get_item(Key={"sensor_id": sensor_id})
-        item = resp.get("Item")
-        previous_state = item.get("last_state") if item else None
-
-        log(
-            "INFO",
-            "Loaded previous state",
-            sensor_id=sensor_id,
-            previous_state=previous_state,
-            current_state=current_state,
-        )
-
-        email_sent = False
-        message = "no action"
-
-        if previous_state in (None, "DRY") and current_state == "WET":
-            subject = f"Moisture detected in {zone_name}"
-            body_text = (
-                f"Hello,\n\n"
-                f"Moisture has been detected by the monitoring system.\n\n"
-                f"Location: {zone_name}\n"
-                f"Sensor ID: {sensor_id}\n"
-                f"Device ID: {device_id}\n"
-                f"Current state: {current_state}\n"
-                f"Detected at: {received_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
-                f"MQTT topic: {mqtt_topic}\n\n"
-                f"Please check the area.\n\n"
-                f"Monitoring System"
-            )
-
-            ses.send_email(
-                Source=SENDER,
-                Destination={"ToAddresses": RECIPIENTS},
-                Message={
-                    "Subject": {"Data": subject, "Charset": "UTF-8"},
-                    "Body": {
-                        "Text": {"Data": body_text, "Charset": "UTF-8"}
-                    }
-                }
-            )
-
-            email_sent = True
-            message = "dry->wet detected, email sent"
-
-        elif previous_state == "WET" and current_state == "WET":
-            message = "still wet, no email sent"
-
-        elif previous_state == "WET" and current_state == "DRY":
-            message = "wet->dry detected, no email sent"
-
-        elif previous_state == "DRY" and current_state == "DRY":
-            message = "still dry, no email sent"
-
-        elif previous_state is None:
-            message = "first state recorded, no email sent"
-
-        else:
-            message = f"{previous_state}->{current_state}, no email sent"
-
-        table.put_item(
-            Item={
-                "sensor_id": sensor_id,
-                "last_state": current_state,
-                "zone_name": zone_name,
-                "device_id": device_id,
-                "updated_ts": received_ts,
-                "updated_at": received_at.isoformat(),
-            }
-        )
-
-        log(
-            "INFO",
-            "State updated",
-            sensor_id=sensor_id,
-            previous_state=previous_state,
-            current_state=current_state,
-            email_sent=email_sent,
-            message=message,
-        )
-
-        return {
-            "ok": True,
-            "sensor_id": sensor_id,
-            "previous_state": previous_state,
-            "current_state": current_state,
-            "email_sent": email_sent,
-            "message": message,
-        }
-
-    except ClientError as e:
-        log("ERROR", "AWS error", error=str(e))
-        return {"ok": False, "error": str(e)}
-
-    except Exception as e:
-        log("ERROR", "General error", error=str(e))
-        return {"ok": False, "error": str(e)}
+    return {"ok": True, "email_sent": should_send, "state": state}

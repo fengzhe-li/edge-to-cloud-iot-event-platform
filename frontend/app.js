@@ -1,48 +1,17 @@
-// ===== Authentication =====
-// Client-side login is for portfolio demonstration only; it is not real authentication.
-const APP_PASSWORD = window.APP_CONFIG?.DEMO_PASSWORD || 'demo';
-
+// Local preview gate only. It provides no authentication or authorization.
 function checkLogin() {
-    if (sessionStorage.getItem('authenticated') === 'true') {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('app-content').style.display = '';
-    } else {
-        document.getElementById('login-overlay').style.display = '';
-        document.getElementById('app-content').style.display = 'none';
-    }
+    const previewOpen = sessionStorage.getItem('previewOpen') === 'true';
+    document.getElementById('login-overlay').style.display = previewOpen ? 'none' : '';
+    document.getElementById('app-content').style.display = previewOpen ? '' : 'none';
 }
-
 function handleLogin() {
-    const input = document.getElementById('login-password');
-    const error = document.getElementById('login-error');
-    const card = document.querySelector('.login-card');
-
-    if (input.value === APP_PASSWORD) {
-        sessionStorage.setItem('authenticated', 'true');
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('app-content').style.display = '';
-        error.textContent = '';
-    } else {
-        error.textContent = 'Incorrect password. Please try again.';
-        input.value = '';
-        input.focus();
-        // Shake animation
-        card.classList.remove('shake');
-        void card.offsetWidth; // trigger reflow
-        card.classList.add('shake');
-    }
+    sessionStorage.setItem('previewOpen', 'true');
+    checkLogin();
 }
-
 function handleLogout() {
-    sessionStorage.removeItem('authenticated');
-    document.getElementById('login-overlay').style.display = '';
-    document.getElementById('app-content').style.display = 'none';
-    document.getElementById('login-password').value = '';
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('login-password').focus();
+    sessionStorage.removeItem('previewOpen');
+    checkLogin();
 }
-
-// Check auth state immediately
 checkLogin();
 
 // ===== API Config =====

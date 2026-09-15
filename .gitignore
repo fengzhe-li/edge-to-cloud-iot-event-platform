@@ -38,3 +38,11 @@ build/
 .DS_Store
 .vscode/
 .idea/
+
+# Local verification artefacts
+.test-postgres/
+.ruff_cache/
+.aws-sam/
+samconfig.toml
+# Credential-check source is not a secret.
+!scripts/check_secrets.py

@@ -13,7 +13,7 @@ python3 -m http.server 8000
 
 Then open `http://localhost:8000`.
 
-The demonstration password is `demo`.
+Select **Open preview**; there is no password.
 
 ## Configuration
 
@@ -21,6 +21,7 @@ The demonstration password is `demo`.
 replace them locally and do not commit production endpoints, credentials,
 account IDs, API keys, certificates, client secrets, or real user data.
 
-The password screen is a UI demonstration and is not secure authentication.
-A production deployment should use server-side sessions or an identity provider
-such as Amazon Cognito.
+
+The password comparison has been removed. Open preview is a local UI gate only.
+The supported backend requires IAM-signed requests; this frontend does not sign
+requests or implement Cognito. Full browser authentication remains out of scope.

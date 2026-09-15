@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="730" viewBox="0 0 1280 730" role="img" aria-labelledby="title desc">
+<title id="title">AWS IoT Operational Analytics architecture</title><desc id="desc">MQTT devices feed IoT Core and Python Lambda. PostgreSQL holds history and current state. Analytics and REST endpoints serve a dashboard through deployment-provided authorization. DynamoDB and SES support conditional alert attempts.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#69c9c3"/></marker></defs>
+<rect width="1280" height="730" rx="24" fill="#101722"/>
+<g font-family="Arial,Helvetica,sans-serif"><text x="48" y="60" font-size="30" font-weight="700" fill="#f0f5fc">AWS IoT Operational Analytics</text>
+<text x="48" y="94" font-size="17" fill="#b1becf">Event processing · historical data · operational insight</text>
+<rect x="48" y="150" width="238" height="124" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="68" y="182" font-size="19" font-weight="700" fill="#edf4fc">Devices / MQTT</text>
+<text x="68" y="210" font-size="15" fill="#b6c7d9">Sensor readings</text>
+<text x="68" y="232" font-size="15" fill="#b6c7d9">RFID scans · heartbeats</text>
+<rect x="342" y="150" width="238" height="124" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="362" y="182" font-size="19" font-weight="700" fill="#edf4fc">AWS IoT Core</text>
+<text x="362" y="210" font-size="15" fill="#b6c7d9">Topic rules</text>
+<text x="362" y="232" font-size="15" fill="#b6c7d9">Receipt metadata</text>
+<rect x="636" y="150" width="238" height="124" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="656" y="182" font-size="19" font-weight="700" fill="#edf4fc">Python Lambda</text>
+<text x="656" y="210" font-size="15" fill="#b6c7d9">Validation · classification</text>
+<text x="656" y="232" font-size="15" fill="#b6c7d9">Transactional persistence</text>
+<rect x="930" y="150" width="302" height="124" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="950" y="182" font-size="19" font-weight="700" fill="#edf4fc">PostgreSQL</text>
+<text x="950" y="210" font-size="15" fill="#b6c7d9">Event ledger · reading history</text>
+<text x="950" y="232" font-size="15" fill="#b6c7d9">Current state · configuration</text>
+<path d="M286 212 H332" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M580 212 H626" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M874 212 H920" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<rect x="48" y="392" width="300" height="124" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="68" y="424" font-size="19" font-weight="700" fill="#edf4fc">Dashboard</text>
+<text x="68" y="452" font-size="15" fill="#b6c7d9">Health · incidents · history</text>
+<text x="68" y="474" font-size="15" fill="#b6c7d9">Current settings</text>
+<rect x="420" y="392" width="300" height="124" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="440" y="424" font-size="19" font-weight="700" fill="#edf4fc">REST API / Lambda</text>
+<text x="440" y="452" font-size="15" fill="#b6c7d9">IAM-authorized endpoints</text>
+<text x="440" y="474" font-size="15" fill="#b6c7d9">Status · analytics · controls</text>
+<rect x="792" y="392" width="440" height="124" rx="12" fill="#1b2736" stroke="#3b536b"/>
+<text x="812" y="424" font-size="19" font-weight="700" fill="#edf4fc">Operational analytics</text>
+<text x="812" y="452" font-size="15" fill="#b6c7d9">Window-aware state transitions and counts</text>
+<text x="812" y="474" font-size="15" fill="#b6c7d9">Current health · explicit metric limitations</text>
+<path d="M1080 274 V382" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M792 454 H730" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<path d="M420 454 H358" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="7 6"/>
+<text x="65" y="550" font-size="14" fill="#b6c7d9">Dashed link: deployment-provided authorized transport required.</text>
+<text x="65" y="574" font-size="14" fill="#b6c7d9">The browser does not implement SigV4 or Cognito.</text>
+<rect x="636" y="306" width="596" height="52" rx="10" fill="#172c30" stroke="#35676a"/>
+<path d="M752 274 V296" fill="none" stroke="#69c9c3" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="655" y="338" font-size="16" fill="#a9e3dc">Alert path: conditional DynamoDB state → SES send attempt</text>
+<path d="M48 608 H1232" stroke="#314253"/>
+<text x="48" y="646" font-size="17" fill="#edf4fc">Tested locally: Python logic + PostgreSQL transactions + DynamoDB emulation</text>
+<text x="48" y="678" font-size="15" fill="#b1becf">No invented availability or response times. No throughput, exactly-once delivery or live-deployment claims.</text>
+</g></svg>

@@ -31,3 +31,11 @@ The included SAM templates are illustrative and contain placeholders. Store
 database credentials in AWS Secrets Manager or SSM Parameter Store, apply
 least-privilege IAM policies, restrict CORS for production, and use verified SES
 identities supplied through environment variables.
+
+## Supported deployment boundary
+
+Use the repository-root SAM template and docs/DEPLOYMENT.md. The legacy
+sensor-data-processor stored-function contract is missing, and the EventBridge
+consumer is unwired; neither is included in the supported deployment. Alert
+suppression uses conditional state acceptance, with the delivery limitations in
+docs/ENGINEERING.md.

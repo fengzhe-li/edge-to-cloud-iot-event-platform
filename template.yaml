@@ -1,0 +1,321 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Spill backend with existing PostgreSQL and verified SES identity; private
+  signed APIs.
+Parameters:
+  DBHost:
+    Type: String
+  DBName:
+    Type: String
+  DBUser:
+    Type: String
+  DBPassword:
+    Type: String
+    NoEcho: true
+  DBSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+  DBSecurityGroups:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  Sender:
+    Type: String
+  Recipients:
+    Type: String
+  IoTEndpoint:
+    Type: String
+  SensorZoneMap:
+    Type: String
+    Default: '{"0":1,"1":1,"2":2,"3":3,"4":3,"5":2}'
+    Description: Current dashboard sensor-zone mapping; historical changes are not
+      known.
+Globals:
+  Function:
+    Runtime: python3.12
+    Handler: lambda_function.lambda_handler
+    Timeout: 15
+    MemorySize: 128
+    Architectures:
+    - x86_64
+    Layers:
+    - Ref: CommonLayer
+Resources:
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: backend/layers/common
+      CompatibleRuntimes:
+      - python3.12
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+  AlertState:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: sensor_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: sensor_id
+        KeyType: HASH
+  ActuatorState:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: pk
+        AttributeType: S
+      KeySchema:
+      - AttributeName: pk
+        KeyType: HASH
+  Ingest:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/lambda/database-ingest
+      VpcConfig:
+        SubnetIds:
+          Ref: DBSubnets
+        SecurityGroupIds:
+          Ref: DBSecurityGroups
+      Environment:
+        Variables:
+          DB_HOST:
+            Ref: DBHost
+          DB_NAME:
+            Ref: DBName
+          DB_USER:
+            Ref: DBUser
+          DB_PASS:
+            Ref: DBPassword
+      Events:
+        Sensor:
+          Type: IoTRule
+          Properties:
+            Sql: SELECT *, topic() AS mqtt_topic, timestamp() AS received_ts FROM
+              'waterlevel/sensors/+/state'
+            AwsIotSqlVersion: '2016-03-23'
+        Heartbeat:
+          Type: IoTRule
+          Properties:
+            Sql: SELECT *, topic() AS mqtt_topic, timestamp() AS received_ts FROM
+              'waterlevel/heartbeat'
+            AwsIotSqlVersion: '2016-03-23'
+        RFID:
+          Type: IoTRule
+          Properties:
+            Sql: SELECT *, topic() AS mqtt_topic, timestamp() AS received_ts FROM
+              'rfid'
+            AwsIotSqlVersion: '2016-03-23'
+  AutomaticAlert:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/lambda/automatic-alert
+      Environment:
+        Variables:
+          ALERT_TABLE:
+            Ref: AlertState
+          SENDER:
+            Ref: Sender
+          RECIPIENTS:
+            Ref: Recipients
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: AlertState
+      - SESCrudPolicy:
+          IdentityName:
+            Ref: Sender
+      Events:
+        Sensor:
+          Type: IoTRule
+          Properties:
+            Sql: SELECT *, topic() AS mqtt_topic, timestamp() AS received_ts FROM
+              'waterlevel/sensors/+/state'
+            AwsIotSqlVersion: '2016-03-23'
+  Status:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/lambda/status-api
+      VpcConfig:
+        SubnetIds:
+          Ref: DBSubnets
+        SecurityGroupIds:
+          Ref: DBSecurityGroups
+      Environment:
+        Variables:
+          DB_HOST:
+            Ref: DBHost
+          DB_NAME:
+            Ref: DBName
+          DB_USER:
+            Ref: DBUser
+          DB_PASS:
+            Ref: DBPassword
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /sensor-status
+            Method: GET
+  Config:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/lambda/sensor-config
+      VpcConfig:
+        SubnetIds:
+          Ref: DBSubnets
+        SecurityGroupIds:
+          Ref: DBSecurityGroups
+      Environment:
+        Variables:
+          DB_HOST:
+            Ref: DBHost
+          DB_NAME:
+            Ref: DBName
+          DB_USER:
+            Ref: DBUser
+          DB_PASS:
+            Ref: DBPassword
+          IOT_ENDPOINT:
+            Ref: IoTEndpoint
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action: iot:Publish
+          Resource:
+            Fn::Sub: arn:${AWS::Partition}:iot:${AWS::Region}:${AWS::AccountId}:topic/config/*
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /config/{device_id}
+            Method: GET
+        Update:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /config/{device_id}/update
+            Method: POST
+        Push:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /config/push
+            Method: POST
+        ThresholdGet:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /threshold/{device_id}
+            Method: GET
+        ThresholdUpdate:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /threshold/{device_id}/update
+            Method: POST
+        ThresholdPush:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /threshold/push
+            Method: POST
+  LED:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/lambda/led-control
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: ActuatorState
+          IOT_ENDPOINT:
+            Ref: IoTEndpoint
+          ENABLE_IOT_PUBLISH: 'true'
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: ActuatorState
+      - Statement:
+        - Effect: Allow
+          Action: iot:Publish
+          Resource:
+            Fn::Sub: arn:${AWS::Partition}:iot:${AWS::Region}:${AWS::AccountId}:topic/actuator/*/set
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /led-control
+            Method: GET
+        Post:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /led-control
+            Method: POST
+  ManualEmail:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/lambda/manual-email-sender
+      Environment:
+        Variables:
+          SENDER:
+            Ref: Sender
+      Policies:
+      - SESCrudPolicy:
+          IdentityName:
+            Ref: Sender
+      Events:
+        Post:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /send-email
+            Method: POST
+  Analytics:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/lambda/analytics
+      VpcConfig:
+        SubnetIds:
+          Ref: DBSubnets
+        SecurityGroupIds:
+          Ref: DBSecurityGroups
+      Environment:
+        Variables:
+          DB_HOST:
+            Ref: DBHost
+          DB_NAME:
+            Ref: DBName
+          DB_USER:
+            Ref: DBUser
+          DB_PASS:
+            Ref: DBPassword
+          SENSOR_ZONE_MAP:
+            Ref: SensorZoneMap
+      Events:
+        Summary:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /analytics/summary
+            Method: GET
+Outputs:
+  ApiUrl:
+    Value:
+      Fn::Sub: https://${Api}.execute-api.${AWS::Region}.amazonaws.com/prod

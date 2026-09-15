@@ -1,0 +1,154 @@
+{
+  "ok": true,
+  "generated_at": "2026-09-06T12:00:00+00:00",
+  "window": {
+    "start": "2026-09-05T12:00:00+00:00",
+    "end": "2026-09-06T12:00:00+00:00",
+    "boundary": "start inclusive, end exclusive"
+  },
+  "devices": [
+    {
+      "device_id": "Arduino1",
+      "status": "online",
+      "quiet_but_online": true,
+      "last_seen_at": "2026-09-06T12:00:00+00:00",
+      "last_seen_ts": 1788695995000,
+      "heartbeat_age_seconds": 5.0,
+      "last_sensor_ts": 1788681600000,
+      "reported_uptime_seconds": 7200.0,
+      "availability_percent": null
+    },
+    {
+      "device_id": "Arduino2",
+      "status": "offline",
+      "quiet_but_online": false,
+      "last_seen_at": "2026-09-06T11:55:00+00:00",
+      "last_seen_ts": 1788695700000,
+      "heartbeat_age_seconds": 300.0,
+      "last_sensor_ts": null,
+      "reported_uptime_seconds": 120.0,
+      "availability_percent": null
+    }
+  ],
+  "online_device_count": 1,
+  "device_count": 2,
+  "incidents": {
+    "incident_count": 2,
+    "first_observed_wet_count": 0,
+    "events_per_hour": 0.08333333333333333,
+    "by_sensor": {
+      "0": 2
+    },
+    "by_device": {
+      "Arduino1": 2
+    },
+    "by_zone": {
+      "1": 2
+    },
+    "recent_incidents": [
+      {
+        "record_id": 5,
+        "device_id": "Arduino1",
+        "sensor_id": 0,
+        "zone_id": 1,
+        "timestamp_ms": 1788681600000,
+        "from_state": "DRY",
+        "to_state": "WET",
+        "ambiguous_timestamp": false,
+        "classification": "observed_wet_transition"
+      },
+      {
+        "record_id": 2,
+        "device_id": "Arduino1",
+        "sensor_id": 0,
+        "zone_id": 1,
+        "timestamp_ms": 1788670800000,
+        "from_state": "DRY",
+        "to_state": "WET",
+        "ambiguous_timestamp": false,
+        "classification": "observed_wet_transition"
+      }
+    ],
+    "recent_incidents_total": 2,
+    "state_transitions": [
+      {
+        "record_id": 5,
+        "device_id": "Arduino1",
+        "sensor_id": 0,
+        "zone_id": 1,
+        "timestamp_ms": 1788681600000,
+        "from_state": "DRY",
+        "to_state": "WET",
+        "ambiguous_timestamp": false
+      },
+      {
+        "record_id": 4,
+        "device_id": "Arduino1",
+        "sensor_id": 0,
+        "zone_id": 1,
+        "timestamp_ms": 1788678000000,
+        "from_state": "WET",
+        "to_state": "DRY",
+        "ambiguous_timestamp": false
+      },
+      {
+        "record_id": 2,
+        "device_id": "Arduino1",
+        "sensor_id": 0,
+        "zone_id": 1,
+        "timestamp_ms": 1788670800000,
+        "from_state": "DRY",
+        "to_state": "WET",
+        "ambiguous_timestamp": false
+      },
+      {
+        "record_id": 1,
+        "device_id": "Arduino1",
+        "sensor_id": 0,
+        "zone_id": 1,
+        "timestamp_ms": 1788667200000,
+        "from_state": null,
+        "to_state": "DRY",
+        "ambiguous_timestamp": false
+      }
+    ],
+    "state_transitions_total": 4,
+    "ambiguous_reading_count": 0
+  },
+  "response_times": {
+    "supported": false,
+    "mean_seconds": null,
+    "rfid_scans_in_window": 3,
+    "reason": "No incident acknowledgement key"
+  },
+  "current_sensor_state": [
+    {
+      "sensor_id": 0,
+      "state": "WET",
+      "updated_ts": 1788681600000
+    }
+  ],
+  "configuration": [
+    {
+      "device_id": "Arduino1",
+      "sensor_id": 0,
+      "active": true
+    }
+  ],
+  "thresholds": [
+    {
+      "device_name": "Arduino1",
+      "sensor_id": 0,
+      "threshold_value": 500
+    }
+  ],
+  "availability": {
+    "supported": false,
+    "percent": null,
+    "reason": "Only latest heartbeat retained"
+  },
+  "configuration_history": {
+    "supported": false,
+    "reason": "Only current values retained"
+  }
+}

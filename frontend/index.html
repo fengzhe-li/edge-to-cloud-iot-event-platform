@@ -26,16 +26,12 @@
                 </svg>
                 <span>SensorWatch</span>
             </div>
-            <p class="login-subtitle">Enter password to access the dashboard</p>
-            <div class="login-input-wrap">
-                <input type="password" id="login-password" class="login-input" placeholder="Password" onkeydown="if(event.key==='Enter')handleLogin()" autofocus />
-            </div>
-            <div id="login-error" class="login-error"></div>
-            <button class="login-btn" onclick="handleLogin()">Login</button>
+            <p class="login-subtitle">Local dashboard preview. Cloud access requires separate authorization.</p>
+            <button class="login-btn" onclick="handleLogin()">Open preview</button>
         </div>
     </div>
 
-    <!-- App Content (hidden until login) -->
+    <!-- App Content (hidden until preview opened) -->
     <div id="app-content" style="display:none;">
 
     <header class="header">
@@ -232,6 +228,37 @@
         </div>
     </main>
 
+    <section class="analytics-section" aria-labelledby="analytics-title">
+        <div class="analytics-toolbar">
+            <div><h2 id="analytics-title">Operational analytics</h2>
+                <p>Observed incidents and current device health</p></div>
+            <div><label for="analytics-window">History window</label>
+                <select id="analytics-window"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>24 hours</option><option value="168">7 days</option><option value="744">31 days</option></select>
+                <button id="analytics-refresh" type="button">Refresh analytics</button></div>
+        </div>
+        <p id="analytics-status" role="status">Refresh to load data from the configured authorized analytics endpoint.</p>
+        <div id="analytics-results" hidden>
+            <p id="analytics-stamp" class="analytics-note"></p>
+            <div class="analytics-grid">
+                <article><h3>Observed spill onsets</h3><strong id="analytics-count"></strong><p id="analytics-frequency"></p><p id="analytics-first-wet" class="analytics-note"></p></article>
+                <article><h3>Device health</h3><strong id="analytics-online"></strong><p id="analytics-availability" class="analytics-note"></p></article>
+                <article><h3>Response time</h3><p id="analytics-response"></p></article>
+            </div>
+            <h3>Devices</h3><div id="analytics-devices" class="analytics-table"></div>
+            <div class="analytics-grid">
+                <article><h3>Incidents by zone</h3><p class="analytics-note">Uses current configured sensor locations, not historical locations.</p><div id="analytics-zones" class="analytics-table"></div></article>
+                <article><h3>Recent incidents</h3><div id="analytics-incidents" class="analytics-table"></div></article>
+            </div>
+            <h3>Recent sensor transitions</h3><div id="analytics-history" class="analytics-table"></div>
+            <h3>Current sensor state</h3><div id="analytics-current-state" class="analytics-table"></div>
+            <div class="analytics-grid">
+                <article><h3>Current activation</h3><div id="analytics-settings" class="analytics-table"></div></article>
+                <article><h3>Current thresholds</h3><div id="analytics-thresholds" class="analytics-table"></div></article>
+            </div>
+            <p class="analytics-note">Configuration history and server-side HANDLING history are not stored. Reported uptime is a device counter, not an availability percentage.</p>
+        </div>
+    </section>
+
     <!-- Global Toast Container -->
     <div id="toast-container" class="toast-container"></div>
 
@@ -376,6 +403,7 @@
     <script src="config.js"></script>
     <script src="map.js"></script>
     <script src="app.js"></script>
+    <script src="analytics.js"></script>
 </body>
 
 </html>

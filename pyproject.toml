@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["backend/layers/common/python"]
+markers = ["postgres: requires disposable PostgreSQL via TEST_DATABASE_URL"]
+[tool.ruff.lint]
+select = ["E9", "F"]

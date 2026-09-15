@@ -1,3 +1,5 @@
+from spill_common import observed, body_object, integer
+
 """
 sensor_config Lambda — Python 3.12 (psycopg2)
 ──────────────────────────────────────────────
@@ -19,20 +21,26 @@ import psycopg2
 import boto3
 from datetime import datetime, timezone
 
-DB_HOST      = os.environ["DB_HOST"]
-DB_PORT      = int(os.environ.get("DB_PORT", "5432"))
-DB_NAME      = os.environ["DB_NAME"]
-DB_USER      = os.environ["DB_USER"]
-DB_PASS      = os.environ["DB_PASS"]
+DB_HOST = os.environ["DB_HOST"]
+DB_PORT = int(os.environ.get("DB_PORT", "5432"))
+DB_NAME = os.environ["DB_NAME"]
+DB_USER = os.environ["DB_USER"]
+DB_PASS = os.environ["DB_PASS"]
 IOT_ENDPOINT = os.environ["IOT_ENDPOINT"]
 
-iot_data = boto3.client("iot-data", region_name="eu-north-1")
+iot_data = boto3.client(
+    "iot-data",
+    region_name=os.getenv("AWS_REGION", "eu-north-1"),
+    endpoint_url="https://" + IOT_ENDPOINT,
+)
 
 # ── 路由入口 ─────────────────────────────────────────────────────────────────
 
+
+@observed("sensor_config", api=True)
 def lambda_handler(event, context):
     method = event.get("httpMethod", "")
-    path   = event.get("path", "")
+    path = event.get("path", "")
 
     if method == "OPTIONS":
         return _resp(200, {})
@@ -51,31 +59,33 @@ def lambda_handler(event, context):
 
     # POST /config/push  ← 静态路径优先
     if method == "POST" and path == "/config/push":
-        body = json.loads(event.get("body") or "{}")
+        body = body_object(event)
         return handle_push(body)
 
     # POST /threshold/push  ← 静态路径优先
     if method == "POST" and path == "/threshold/push":
-        body = json.loads(event.get("body") or "{}")
+        body = body_object(event)
         return handle_threshold_push(body)
 
     # POST /config/{device_id}/update
     if method == "POST":
         m = re.match(r"^/config/([^/]+)/update$", path)
         if m:
-            body = json.loads(event.get("body") or "{}")
+            body = body_object(event)
             return handle_update(m.group(1), body)
 
     # POST /threshold/{device_id}/update
     if method == "POST":
         m = re.match(r"^/threshold/([^/]+)/update$", path)
         if m:
-            body = json.loads(event.get("body") or "{}")
+            body = body_object(event)
             return handle_threshold_update(m.group(1), body)
 
     return _resp(404, {"ok": False, "error": f"No route for {method} {path}"})
 
+
 # ── Config 处理函数 ───────────────────────────────────────────────────────────
+
 
 def handle_get(device_id: str):
     rows = _db_fetch(
@@ -89,20 +99,23 @@ def handle_get(device_id: str):
 
 def handle_update(device_id: str, body: dict):
     try:
-        sensor_id = int(body["sensor_id"])
-        active    = bool(body["active"])
+        sensor_id = integer(body["sensor_id"], "sensor_id")
+        active = body["active"]
+        if not isinstance(active, bool):
+            raise ValueError("active must be a JSON boolean")
     except (KeyError, ValueError, TypeError) as e:
         return _resp(400, {"ok": False, "error": str(e)})
 
     updated = _db_execute(
-        "UPDATE sensor_config SET active = %s "
-        "WHERE device_id = %s AND sensor_id = %s",
+        "UPDATE sensor_config SET active = %s WHERE device_id = %s AND sensor_id = %s",
         (active, device_id, sensor_id),
     )
     if updated == 0:
         return _resp(404, {"ok": False, "error": "row not found"})
-    return _resp(200, {"ok": True, "device_id": device_id,
-                       "sensor_id": sensor_id, "active": active})
+    return _resp(
+        200,
+        {"ok": True, "device_id": device_id, "sensor_id": sensor_id, "active": active},
+    )
 
 
 def handle_push(body: dict):
@@ -120,21 +133,28 @@ def handle_push(body: dict):
 
     sensors = {str(sid): active for sid, active in rows}
     payload = json.dumps({"sensors": sensors})
-    topic   = f"config/{device_id}/sensors"
+    topic = f"config/{device_id}/sensors"
 
     iot_data.publish(topic=topic, qos=1, payload=payload.encode("utf-8"))
 
-    print(json.dumps({
-        "msg":       "Config published",
-        "device_id": device_id,
-        "topic":     topic,
-        "payload":   payload,
-        "ts":        datetime.now(timezone.utc).isoformat(),
-    }))
-    return _resp(200, {"ok": True, "device_id": device_id,
-                       "topic": topic, "sensors": sensors})
+    print(
+        json.dumps(
+            {
+                "msg": "Config published",
+                "device_id": device_id,
+                "topic": topic,
+                "payload": payload,
+                "ts": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    )
+    return _resp(
+        200, {"ok": True, "device_id": device_id, "topic": topic, "sensors": sensors}
+    )
+
 
 # ── Threshold 处理函数 ────────────────────────────────────────────────────────
+
 
 def handle_threshold_get(device_name: str):
     rows = _db_fetch(
@@ -143,13 +163,15 @@ def handle_threshold_get(device_name: str):
         (device_name,),
     )
     thresholds = [{"sensor_id": sid, "threshold_value": val} for sid, val in rows]
-    return _resp(200, {"ok": True, "device_name": device_name, "thresholds": thresholds})
+    return _resp(
+        200, {"ok": True, "device_name": device_name, "thresholds": thresholds}
+    )
 
 
 def handle_threshold_update(device_name: str, body: dict):
     try:
-        sensor_id       = int(body["sensor_id"])
-        threshold_value = int(body["threshold_value"])
+        sensor_id = integer(body["sensor_id"], "sensor_id")
+        threshold_value = integer(body["threshold_value"], "threshold_value")
     except (KeyError, ValueError, TypeError) as e:
         return _resp(400, {"ok": False, "error": str(e)})
 
@@ -160,8 +182,15 @@ def handle_threshold_update(device_name: str, body: dict):
     )
     if updated == 0:
         return _resp(404, {"ok": False, "error": "row not found"})
-    return _resp(200, {"ok": True, "device_name": device_name,
-                       "sensor_id": sensor_id, "threshold_value": threshold_value})
+    return _resp(
+        200,
+        {
+            "ok": True,
+            "device_name": device_name,
+            "sensor_id": sensor_id,
+            "threshold_value": threshold_value,
+        },
+    )
 
 
 def handle_threshold_push(body: dict):
@@ -175,31 +204,50 @@ def handle_threshold_push(body: dict):
         (device_name,),
     )
     if not rows:
-        return _resp(404, {"ok": False, "error": f"no threshold rows for {device_name}"})
+        return _resp(
+            404, {"ok": False, "error": f"no threshold rows for {device_name}"}
+        )
 
     thresholds = {str(sid): val for sid, val in rows}
     payload = json.dumps({"thresholds": thresholds})
-    topic   = f"config/{device_name}/thresholds"
+    topic = f"config/{device_name}/thresholds"
 
     iot_data.publish(topic=topic, qos=1, payload=payload.encode("utf-8"))
 
-    print(json.dumps({
-        "msg":         "Threshold published",
-        "device_name": device_name,
-        "topic":       topic,
-        "payload":     payload,
-        "ts":          datetime.now(timezone.utc).isoformat(),
-    }))
-    return _resp(200, {"ok": True, "device_name": device_name,
-                       "topic": topic, "thresholds": thresholds})
+    print(
+        json.dumps(
+            {
+                "msg": "Threshold published",
+                "device_name": device_name,
+                "topic": topic,
+                "payload": payload,
+                "ts": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+    )
+    return _resp(
+        200,
+        {
+            "ok": True,
+            "device_name": device_name,
+            "topic": topic,
+            "thresholds": thresholds,
+        },
+    )
+
 
 # ── 数据库工具 ────────────────────────────────────────────────────────────────
 
+
 def _get_conn():
     return psycopg2.connect(
-        host=DB_HOST, port=DB_PORT,
-        dbname=DB_NAME, user=DB_USER, password=DB_PASS,
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASS,
     )
+
 
 def _db_fetch(sql: str, params: tuple) -> list:
     conn = _get_conn()
@@ -209,6 +257,7 @@ def _db_fetch(sql: str, params: tuple) -> list:
             return cur.fetchall()
     finally:
         conn.close()
+
 
 def _db_execute(sql: str, params: tuple) -> int:
     conn = _get_conn()
@@ -221,14 +270,16 @@ def _db_execute(sql: str, params: tuple) -> int:
     finally:
         conn.close()
 
+
 # ── HTTP 响应工具 ─────────────────────────────────────────────────────────────
+
 
 def _resp(status: int, body: dict) -> dict:
     return {
         "statusCode": status,
         "headers": {
-            "Content-Type":                 "application/json",
-            "Access-Control-Allow-Origin":  "*",
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type",
         },

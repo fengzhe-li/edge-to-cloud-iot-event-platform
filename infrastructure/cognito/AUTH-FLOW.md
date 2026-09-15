@@ -1,10 +1,10 @@
-# Suggested authentication flow
+# Authentication boundary
 
-1. The user signs in through Amazon Cognito.
-2. Cognito returns ID and access tokens to the frontend.
-3. The frontend sends the access token in the `Authorization` header.
-4. API Gateway validates the token with a Cognito or JWT authorizer.
-5. Lambda receives only authorised requests.
+Cognito exports preserve prior configuration, not an implemented application login.
+The dashboard has an explicit local preview gate and contains no password comparison.
+The supported root SAM backend requires AWS IAM/SigV4 authorization on its REST API.
+The browser does not obtain Cognito tokens or sign requests. Historical OpenAPI exports
+lack authorizers and must not be treated as secure deployment templates.
 
-The original frontend password screen was a UI demonstration and should not be
-used as production authentication.
+A complete browser authentication flow remains out of scope. Do not put AWS keys in
+frontend configuration or expose historical unauthenticated APIs for the demo.

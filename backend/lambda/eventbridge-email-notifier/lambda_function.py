@@ -1,3 +1,4 @@
+from spill_common import observed
 import os
 import boto3
 
@@ -6,9 +7,10 @@ ses = boto3.client("sesv2")
 
 # Env vars
 SES_FROM_EMAIL = os.environ["SES_FROM_EMAIL"]  # must be verified in SES
-SES_TO_EMAILS = os.environ["SES_TO_EMAILS"]    # comma-separated
+SES_TO_EMAILS = os.environ["SES_TO_EMAILS"]  # comma-separated
 
 
+@observed("eventbridge_email")
 def lambda_handler(event, context):
     """
     Trigger: EventBridge rule (Amazon EventBridge)
@@ -50,7 +52,7 @@ def lambda_handler(event, context):
 
     recipients = [x.strip() for x in SES_TO_EMAILS.split(",") if x.strip()]
     if not recipients:
-        return {"ok": False, "reason": "SES_TO_EMAILS is empty"}
+        raise ValueError("SES_TO_EMAILS is empty")
 
     resp = ses.send_email(
         FromEmailAddress=SES_FROM_EMAIL,
