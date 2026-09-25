@@ -9,9 +9,11 @@ history and operational analytics to a lightweight JavaScript dashboard. The
 concrete domain example is IoT spill-sensor detection, built around AWS IoT
 Core, Lambda, API Gateway, PostgreSQL, DynamoDB and SES.
 
-This is the upgraded project. The [original repository](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system)
-is preserved separately. The upgrade adds tested data-integrity behaviour and
-read-only operational analytics without introducing a new streaming platform.
+**Project origin.** The [original spill-detection system](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system)
+was a collaborative team project and is preserved separately, unmodified. This
+repository is my independent upgrade of it: it adds tested data-integrity
+behaviour and read-only operational analytics without introducing a new
+streaming platform.
 
 ![System architecture](docs/images/architecture.svg)
 

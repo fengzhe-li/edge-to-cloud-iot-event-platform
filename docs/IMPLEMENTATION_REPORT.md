@@ -2,12 +2,15 @@
 
 ## Scope and baseline
 
-Base commit: cde494146bc25dd8c98542823cbcdadcebce7ac8.
-Development branch: codex/backend-integrity. No new commit or push was made.
-The original archive was not modified or used to run any tool.
+Base commit: cde494146bc25dd8c98542823cbcdadcebce7ac8 of the original
+[aws-iot-smart-spill-detection-system](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system)
+repository. The original repository was not modified.
 Baseline: no tests, CI or automated configuration validation.
 
 ## Verification results
+
+Counts below are from the time of this report. The README gives the current
+suite size.
 
 - 56 unit tests passed, including all eight handler imports with safe test configuration.
 - 8 real PostgreSQL integration tests passed: ordering, ties, history persistence,
@@ -64,28 +67,7 @@ an isolated PostgreSQL service. No AWS credentials are required by tests.
 - No application metrics/alarms, distributed tracing, SLO, load/latency benchmarks,
   live deployment verification, Linux/system-level work or high-volume evidence.
 
-## CV-safe bullets: Squarepoint / Python Development
-
-- Implemented Python event-processing handlers for MQTT sensor, RFID and heartbeat data, with normalized inputs and PostgreSQL persistence.
-- Added transactional event deduplication and timestamp-guarded state updates, verified with real PostgreSQL tests including concurrent duplicate ingestion.
-- Implemented conditional DynamoDB alert transitions and structured failure logging, with explicit retry and delivery limitations.
-- Added 68 automated tests and a GitHub Actions workflow covering Python validation, SQL integration tests and deployment configuration checks.
-
-## CV-safe bullets: Backend/SWE
-
-- Built and tested Python REST handlers for sensor status, device configuration, thresholds and actuator control in an AWS Lambda backend.
-- Corrected handler initialization, API-method mismatches, validation errors and false-success responses across backend workflows.
-- Added a shared structured-logging layer and a SAM backend template with IAM-authorized APIs and documented deployment prerequisites.
-- Developed unit and integration coverage for persistence, invalid inputs, state transitions and failure handling, with 68 tests passing locally.
-
-## CV-safe bullets: Data Engineering
-
-- Implemented event-driven MQTT ingestion for sensor readings, RFID events and device heartbeats using Python and PostgreSQL.
-- Preserved historical events while preventing out-of-order messages from replacing newer current-state records.
-- Added a transactional event-identity ledger to suppress duplicate ingestion under a documented identity contract and detect conflicting event IDs.
-- Validated data integrity through real PostgreSQL tests for rollback, ordering, concurrent deduplication and historical persistence.
-
-## Claims and ranking
+## Claims boundary
 
 Safe: tested Python backend; event-driven ingestion; relational modelling; transactional
 retry deduplication within stated limits; timestamp ordering; conditional state transitions;
@@ -94,14 +76,6 @@ structured logs; configured CI; statically validated deployment template.
 Not safe: exactly-once, guaranteed alert delivery, production-grade, highly available,
 high-throughput, low-latency, measured scalability, deployed secure browser authentication,
 complete streaming/replay platform, live GitHub CI success or verified AWS deployment.
-
-Recommended as a stronger supporting Squarepoint Python/backend project. A genuine,
-well-tested Distributed Session Migration System should still rank above it for systems
-roles. Place this above thin LLM wrappers, basic job-scraper dashboards or CRUD-only
-recommendation demos. A substantial Financial Knowledge Intelligence Platform, UK
-Graduate Job Intelligence Platform or Recommendation Platform may rank above it if
-its verified engineering depth is greater. Their repositories were not reviewed here,
-so no unconditional project-quality ranking is justified.
 
 ## Changed files
 

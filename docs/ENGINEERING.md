@@ -2,12 +2,11 @@
 
 ## Baseline
 
-Development took place in a separate working repository, outside the immutable original archive.
-Branch: `codex/backend-integrity`, based on `cde494146bc25dd8c98542823cbcdadcebce7ac8`.
-The working directory initially had an empty Git repository on `main`; it was
-populated from GitHub before implementation. Status after checkout was clean.
+The upgrade was developed in this separate repository, starting from commit
+`cde494146bc25dd8c98542823cbcdadcebce7ac8` of the original
+[aws-iot-smart-spill-detection-system](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system).
 The baseline had no test suite, CI workflow or automated deployment validation.
-The separate original archive has not been used as a development directory or modified.
+The original repository is preserved unmodified.
 
 ## Supported data path
 
