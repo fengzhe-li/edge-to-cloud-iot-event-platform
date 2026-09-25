@@ -117,14 +117,3 @@ Ruff, compileall, JSON/SAM checks, cfn-lint and JS syntax pass. A separate headl
 browser smoke check verified rendering, unavailable metrics, mobile section width
 and failure state; it is not counted in the Python total or claimed as CI browser coverage.
 GitHub-hosted CI and live AWS deployment were not run during this change.
-
-## CV-safe statements
-
-- Developed a Python/PostgreSQL operational analytics API summarising device health, observed incidents and sensor-state transitions over configurable time windows.
-- Distinguished quiet-but-online devices from heartbeat timeouts and exposed last-seen information and device-reported uptime without inventing historical availability.
-- Implemented boundary-aware incident aggregation by sensor, device and configured zone, separating first-observed wet states and ambiguous timestamps from confirmed recorded transitions.
-- Added 34 focused analytics tests, including seven PostgreSQL integration tests, extending the existing automated suite to 102 passing tests.
-
-These demonstrate software/data engineering relevant to telemetry-oriented roles;
-there is no claim of motorsport deployment, high-frequency telemetry, measured latency,
-predictive maintenance or a Williams F1 affiliation.
