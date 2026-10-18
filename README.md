@@ -10,12 +10,41 @@ concrete domain example is IoT spill-sensor detection, built around AWS IoT
 Core, Lambda, API Gateway, PostgreSQL, DynamoDB and SES.
 
 **Project origin.** The [original spill-detection system](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system)
-was a collaborative team project and is preserved separately, unmodified. This
-repository is my independent upgrade of it: it adds tested data-integrity
-behaviour and read-only operational analytics without introducing a new
+was a six-member collaborative university group project (**UCL ELEC0130 Internet of Things, 2026**) and is preserved separately. This
+repository is **Fengzhe Li's independent software engineering upgrade** of that platform: it adds tested data-integrity
+behaviour, retry-safe ingestion, conditional alert deduplication, and read-only operational analytics without introducing a new
 streaming platform.
 
 ![System architecture](docs/images/architecture.svg)
+
+## Physical Prototype & Project Origins
+
+Before this backend reliability and analytics upgrade, the platform originated as a physical edge-to-cloud IoT prototype developed collaboratively by a six-member team (**Jan Frederik Kollmorgen, Ruben Conteiro, Shen Wu, Geyu Huang, Fengzhe Li, and Yikun Chang**) for the **UCL ELEC0130 Internet of Things (2026)** module.
+
+- **[▶ Watch the Original Hardware & Cloud Demonstration Video (3m 14s)](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system/blob/main/docs/media/iot-spill-detection-demo.mp4)** *(hosted in the original group repository)*
+- **[Original Group Project Repository (`aws-iot-smart-spill-detection-system`) →](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system)**
+
+### Original Arduino Edge Hardware & AWS Connectivity
+
+The physical prototype used two **Arduino MKR WiFi 1010** microcontrollers (`u-blox NINA-W102` Wi-Fi + `ATECC508A` hardware crypto element for X.509 mutual-TLS authentication to AWS IoT Core) to compare two complementary liquid-sensing modalities on a physical floor-plan test rig:
+
+1. **System 1 (`Arduino1` — Conductive Sensing & RFID Ack):** Monitored four **DollaTek conductive water-level sensors (`S0`–`S3`)** over 12-bit ADC inputs (`1 Hz` sampling, 10-sample circular buffer, 3-state `DRY`/`WET`/`DRYING` edge state machine), paired with an **MFRC522 (`13.56 MHz`) SPI RFID reader** for on-site staff attendance scans and a **20-pixel `WS2812B` RGB LED strip** for local visual/remote actuator feedback.
+2. **System 2 (`Arduino2` — Non-Contact Optical IR Sensing):** Monitored two **Vishay `VCNL4200` (`940 nm`) I²C optical infrared proximity sensors (`S4`–`S5`)** (`10 Hz` sampling, automatic startup dry-baseline calibration, 20-sample moving average, hysteresis and consecutive hit-count validation) with local green/red status LEDs.
+
+Instead of streaming over **2.07 million raw ADC/I²C samples per day** to the cloud, the edge firmware published only confirmed state transitions (`waterlevel/sensors/{id}/state`), RFID tag scans (`sensors/rfid`), and 10-second heartbeats (`waterlevel/heartbeat`) over MQTT/TLS to **AWS IoT Core**, reducing downstream persistence traffic to ~**3.6 MB/day per device**.
+
+| Original Dual-Arduino Hardware Test Rig (`Arduino1` & `Arduino2`) | Live Demonstration Keyframes (Spill, Alert, RFID & Remote Actuator) |
+| :---: | :---: |
+| ![Original physical prototype test setup](docs/images/original-hardware-prototype.jpg) | ![Original live hardware and cloud demo keyframes](docs/images/original-hardware-demo-overview.png) |
+| *Historical material from the six-member UCL ELEC0130 group project: physical floor-plan rig with `Arduino1` (conductive `S0`–`S3`, `RC522` RFID, `WS2812B` LED strip) and `Arduino2` (`VCNL4200` optical IR `S4`–`S5`).* | *Historical material from the six-member UCL ELEC0130 group project: keyframes from the physical lab evaluation showing water spill detection, `SensorWatch` UI updates, SES alert delivery, and RFID scan.* |
+
+![Original SensorWatch web dashboard](docs/images/original-sensorwatch-dashboard.jpg)
+*Historical material from the six-member UCL ELEC0130 group project: original `SensorWatch` web dashboard showing live `Arduino1`/`Arduino2` connection telemetry, interactive 6-sensor floor-plan map (`S0`–`S5`), and recent RFID attendance scans.*
+
+### Scope Distinction: Collaborative Origins vs. Independent Upgrade
+
+- **Original Group Project ([`aws-iot-smart-spill-detection-system`](https://github.com/fengzhe-li/aws-iot-smart-spill-detection-system)):** Collaborative six-member coursework covering the physical Arduino circuits, conductive and optical edge firmware, original AWS IoT/Lambda/RDS/DynamoDB/SES cloud wiring, and the original `SensorWatch` dashboard shown above.
+- **This Repository ([`edge-to-cloud-iot-event-platform`](https://github.com/fengzhe-li/edge-to-cloud-iot-event-platform)):** Independent post-coursework software engineering upgrade by **Fengzhe Li**, re-architecting the backend ingestion, deduplication ledger, compare-and-swap alert concurrency guards, read-only `/analytics/summary` subsystem, SAM infrastructure-as-code (`AWS_IAM`), and automated 102-test verification suite.
 
 ## What the project demonstrates
 
